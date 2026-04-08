@@ -590,6 +590,30 @@ export interface ClientCapabilities {
 }
 
 /**
+ * Describes a topic the server can publish to.
+ *
+ * @category `events`
+ */
+export interface EventTopicDescriptor {
+    /**
+     * A pattern identifying the topic.
+     */
+    pattern: string;
+    /**
+     * A human-readable description of the topic.
+     */
+    description?: string;
+    /**
+     * Whether the server retains the last published message for this topic.
+     */
+    retained?: boolean;
+    /**
+     * An optional JSON Schema describing the shape of messages on this topic.
+     */
+    schema?: JSONObject;
+}
+
+/**
  * Capabilities that a server may support. Known capabilities are defined here, in this schema, but this is not a closed set: any server can define its own, additional capabilities.
  *
  * @category `initialize`
@@ -694,6 +718,20 @@ export interface ServerCapabilities {
                 call?: JSONObject;
             };
         };
+    };
+    /**
+     * Present if the server supports publishing events to clients.
+     */
+    events?: {
+        /**
+         * Topics the server can publish to.
+         */
+        topics: EventTopicDescriptor[];
+        /**
+         * Instructions describing the server's events capability.
+         */
+        instructions?: string;
+        [key: string]: unknown;
     };
     /**
      * Optional MCP extensions that the server supports. Keys are extension identifiers
