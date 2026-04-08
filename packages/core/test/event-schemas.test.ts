@@ -141,8 +141,8 @@ describe('Event Zod schemas', () => {
             expect(result.source).toBe('ci-server');
             expect(result.correlation_id).toBe('corr-123');
             expect(result.requested_effects).toHaveLength(1);
-            expect(result.requested_effects![0].type).toBe('inject_context');
-            expect(result.requested_effects![0].priority).toBe('urgent');
+            expect(result.requested_effects![0]!.type).toBe('inject_context');
+            expect(result.requested_effects![0]!.priority).toBe('urgent');
             expect(result.expires_at).toBe('2026-04-08T00:00:00Z');
         });
 
@@ -258,7 +258,7 @@ describe('Event Zod schemas', () => {
                 subscribed: [{ pattern: 'build/#' }],
             });
             expect(result.subscribed).toHaveLength(1);
-            expect(result.subscribed[0].pattern).toBe('build/#');
+            expect(result.subscribed[0]!.pattern).toBe('build/#');
             expect(result.rejected).toEqual([]);
             expect(result.retained).toEqual([]);
         });
@@ -277,15 +277,15 @@ describe('Event Zod schemas', () => {
                 ],
             });
             expect(result.subscribed).toHaveLength(1);
-            expect(result.subscribed[0].pattern).toBe('build/#');
+            expect(result.subscribed[0]!.pattern).toBe('build/#');
             expect(result.rejected).toHaveLength(1);
-            expect(result.rejected[0].pattern).toBe('secret/#');
-            expect(result.rejected[0].reason).toBe('permission_denied');
+            expect(result.rejected![0]!.pattern).toBe('secret/#');
+            expect(result.rejected![0]!.reason).toBe('permission_denied');
             expect(result.retained).toHaveLength(1);
-            expect(result.retained[0].topic).toBe('build/status');
-            expect(result.retained[0].event_id).toBe('ret-001');
-            expect(result.retained[0].timestamp).toBe('2026-04-07T00:00:00Z');
-            expect(result.retained[0].payload).toEqual({ status: 'passing' });
+            expect(result.retained![0]!.topic).toBe('build/status');
+            expect(result.retained![0]!.event_id).toBe('ret-001');
+            expect(result.retained![0]!.timestamp).toBe('2026-04-07T00:00:00Z');
+            expect(result.retained![0]!.payload).toEqual({ status: 'passing' });
         });
     });
 
@@ -361,12 +361,12 @@ describe('Event Zod schemas', () => {
                 ],
             });
             expect(result.topics).toHaveLength(2);
-            expect(result.topics[0].pattern).toBe('build/status');
-            expect(result.topics[0].description).toBe('Build status');
-            expect(result.topics[0].retained).toBe(true);
-            expect(result.topics[1].pattern).toBe('sessions/{session_id}/messages');
-            expect(result.topics[1].description).toBeUndefined();
-            expect(result.topics[1].retained).toBeUndefined();
+            expect(result.topics[0]!.pattern).toBe('build/status');
+            expect(result.topics[0]!.description).toBe('Build status');
+            expect(result.topics[0]!.retained).toBe(true);
+            expect(result.topics[1]!.pattern).toBe('sessions/{session_id}/messages');
+            expect(result.topics[1]!.description).toBeUndefined();
+            expect(result.topics[1]!.retained).toBeUndefined();
         });
 
         it('should accept nextCursor for pagination', () => {
@@ -486,9 +486,10 @@ describe('Event schemas wired into unions and capabilities', () => {
             };
             const parsed = ServerNotificationSchema.parse(notification);
             expect(parsed.method).toBe('events/emit');
-            expect(parsed.params.topic).toBe('test/topic');
-            expect(parsed.params.event_id).toBe('evt-1');
-            expect(parsed.params.payload).toEqual({ data: 'value' });
+            const params = parsed.params as { topic: string; event_id: string; payload: unknown };
+            expect(params.topic).toBe('test/topic');
+            expect(params.event_id).toBe('evt-1');
+            expect(params.payload).toEqual({ data: 'value' });
         });
     });
 
@@ -499,7 +500,7 @@ describe('Event schemas wired into unions and capabilities', () => {
                 params: { topics: ['foo/#'] },
             });
             expect(parsed.method).toBe('events/subscribe');
-            expect(parsed.params.topics).toEqual(['foo/#']);
+            expect((parsed.params as { topics: string[] }).topics).toEqual(['foo/#']);
         });
 
         it('should accept EventUnsubscribeRequest', () => {
@@ -508,7 +509,7 @@ describe('Event schemas wired into unions and capabilities', () => {
                 params: { topics: ['foo/#'] },
             });
             expect(parsed.method).toBe('events/unsubscribe');
-            expect(parsed.params.topics).toEqual(['foo/#']);
+            expect((parsed.params as { topics: string[] }).topics).toEqual(['foo/#']);
         });
 
         it('should accept EventListRequest', () => {
@@ -523,24 +524,24 @@ describe('Event schemas wired into unions and capabilities', () => {
         it('should accept EventSubscribeResult', () => {
             const parsed = ServerResultSchema.parse({
                 subscribed: [{ pattern: 'foo/#' }],
-            });
+            }) as { subscribed: { pattern: string }[] };
             expect(parsed.subscribed).toHaveLength(1);
-            expect(parsed.subscribed[0].pattern).toBe('foo/#');
+            expect(parsed.subscribed[0]!.pattern).toBe('foo/#');
         });
 
         it('should accept EventUnsubscribeResult', () => {
             const parsed = ServerResultSchema.parse({
                 unsubscribed: ['foo/#'],
-            });
+            }) as { unsubscribed: string[] };
             expect(parsed.unsubscribed).toEqual(['foo/#']);
         });
 
         it('should accept EventListResult', () => {
             const parsed = ServerResultSchema.parse({
                 topics: [{ pattern: 'foo/bar' }],
-            });
+            }) as { topics: { pattern: string }[] };
             expect(parsed.topics).toHaveLength(1);
-            expect(parsed.topics[0].pattern).toBe('foo/bar');
+            expect(parsed.topics[0]!.pattern).toBe('foo/bar');
         });
     });
 });
