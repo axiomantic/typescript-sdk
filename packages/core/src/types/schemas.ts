@@ -2115,12 +2115,12 @@ export const EventParamsSchema = NotificationsParamsSchema.extend({
     topic: z.string(),
     event_id: z.string(),
     payload: z.unknown(),
-    timestamp: z.string().optional(),
+    timestamp: z.iso.datetime({ offset: true }).optional(),
     retained: z.boolean().optional(),
     source: z.string().optional(),
     correlation_id: z.string().optional(),
     requested_effects: z.array(EventEffectSchema).optional(),
-    expires_at: z.string().optional(),
+    expires_at: z.iso.datetime({ offset: true }).optional(),
 });
 
 /**
@@ -2159,7 +2159,7 @@ export const RejectedTopicSchema = z.object({
 export const RetainedEventSchema = z.object({
     topic: z.string(),
     event_id: z.string(),
-    timestamp: z.string().optional(),
+    timestamp: z.iso.datetime({ offset: true }).optional(),
     payload: z.unknown(),
 });
 
