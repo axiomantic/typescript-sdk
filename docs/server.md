@@ -550,7 +550,7 @@ All event schemas are part of `ServerNotificationSchema` (`EventEmitNotification
 ### Protocol flow
 
 1. Server declares `events` in its capabilities during initialization, listing available topics.
-2. Client sends `events/subscribe` with an array of topic patterns. Patterns use `+` as a single-segment wildcard (MQTT-style), so `builds/+/status` matches `builds/frontend/status`.
+2. Client sends `events/subscribe` with an array of topic patterns. Patterns support MQTT-style wildcards: `+` matches a single path segment (e.g., `builds/+/status` matches `builds/frontend/status`) and `#` matches zero or more trailing segments (e.g., `builds/#` matches `builds/frontend/status` and `builds/backend`). The `#` wildcard may only appear as the last segment of a pattern.
 3. Server responds with `subscribed` (accepted patterns), `rejected` (with reasons), and `retained` (last-known values for retained topics).
 4. Server sends `events/emit` notifications as events occur. Each notification includes the `topic`, a unique `event_id`, an optional `payload`, and optional `requested_effects` that hint at how the client should handle the event.
 5. Client sends `events/unsubscribe` to stop receiving events on specific topics.
@@ -569,7 +569,7 @@ Priority levels are `low`, `normal` (default), `high`, and `urgent`. Clients dec
 
 ### Topic patterns
 
-Topic patterns use path segments separated by `/`. Use `{param}` placeholders in capability declarations to describe parameterized topics (e.g., `sessions/{session_id}/messages`). When subscribing, clients replace `{param}` segments with `+` wildcards to match all values for that segment.
+Topic patterns use path segments separated by `/`. Use `{param}` placeholders in capability declarations to describe parameterized topics (e.g., `sessions/{session_id}/messages`). When subscribing, clients use MQTT-style wildcards: `+` replaces a single segment (e.g., `sessions/+/messages` matches any session's messages) and `#` matches zero or more trailing segments and may only appear as the last segment (e.g., `sessions/#` matches everything under `sessions/`).
 
 ## Tasks (experimental)
 

@@ -467,8 +467,8 @@ export const InitializeRequestSchema = RequestSchema.extend({
  * Advisory hint about how the client should handle an event.
  */
 export const EventEffectSchema = z.object({
-    type: z.enum(["inject_context", "notify_user", "trigger_turn"]),
-    priority: z.enum(["low", "normal", "high", "urgent"]).optional().default("normal"),
+    type: z.enum(['inject_context', 'notify_user', 'trigger_turn']),
+    priority: z.enum(['low', 'normal', 'high', 'urgent']).optional().default('normal')
 });
 
 /**
@@ -478,7 +478,7 @@ export const EventTopicDescriptorSchema = z.object({
     pattern: z.string(),
     description: z.string().optional(),
     retained: z.boolean().optional(),
-    schema: JSONObjectSchema.optional(),
+    schema: JSONObjectSchema.optional()
 });
 
 /**
@@ -486,7 +486,7 @@ export const EventTopicDescriptorSchema = z.object({
  */
 export const EventsCapabilitySchema = z.looseObject({
     topics: z.array(EventTopicDescriptorSchema).optional().default([]),
-    instructions: z.string().optional(),
+    instructions: z.string().optional()
 });
 
 /**
@@ -2114,35 +2114,37 @@ export const RootsListChangedNotificationSchema = NotificationSchema.extend({
 export const EventParamsSchema = NotificationsParamsSchema.extend({
     topic: z.string(),
     event_id: z.string(),
-    payload: z.unknown(),
+    payload: JSONValueSchema.optional(),
     timestamp: z.iso.datetime({ offset: true }).optional(),
     retained: z.boolean().optional(),
     source: z.string().optional(),
     correlation_id: z.string().optional(),
     requested_effects: z.array(EventEffectSchema).optional(),
-    expires_at: z.iso.datetime({ offset: true }).optional(),
-});
+    expires_at: z.iso.datetime({ offset: true }).optional()
+}).loose();
 
 /**
  * Event notification sent from server to client.
  */
 export const EventEmitNotificationSchema = NotificationSchema.extend({
     method: z.literal('events/emit'),
-    params: EventParamsSchema,
+    params: EventParamsSchema
 });
 
 /**
  * Parameters for events/subscribe request.
  */
-export const EventSubscribeParamsSchema = z.object({
-    topics: z.array(z.string()),
-});
+export const EventSubscribeParamsSchema = z
+    .object({
+        topics: z.array(z.string())
+    })
+    .loose();
 
 /**
  * A topic pattern that was successfully subscribed.
  */
 export const SubscribedTopicSchema = z.object({
-    pattern: z.string(),
+    pattern: z.string()
 });
 
 /**
@@ -2150,7 +2152,7 @@ export const SubscribedTopicSchema = z.object({
  */
 export const RejectedTopicSchema = z.object({
     pattern: z.string(),
-    reason: z.string(),
+    reason: z.string()
 });
 
 /**
@@ -2160,7 +2162,7 @@ export const RetainedEventSchema = z.object({
     topic: z.string(),
     event_id: z.string(),
     timestamp: z.iso.datetime({ offset: true }).optional(),
-    payload: z.unknown(),
+    payload: JSONValueSchema.optional()
 });
 
 /**
@@ -2169,7 +2171,7 @@ export const RetainedEventSchema = z.object({
 export const EventSubscribeResultSchema = ResultSchema.extend({
     subscribed: z.array(SubscribedTopicSchema),
     rejected: z.array(RejectedTopicSchema).optional().default([]),
-    retained: z.array(RetainedEventSchema).optional().default([]),
+    retained: z.array(RetainedEventSchema).optional().default([])
 });
 
 /**
@@ -2177,21 +2179,23 @@ export const EventSubscribeResultSchema = ResultSchema.extend({
  */
 export const EventSubscribeRequestSchema = RequestSchema.extend({
     method: z.literal('events/subscribe'),
-    params: EventSubscribeParamsSchema,
+    params: EventSubscribeParamsSchema
 });
 
 /**
  * Parameters for events/unsubscribe request.
  */
-export const EventUnsubscribeParamsSchema = z.object({
-    topics: z.array(z.string()),
-});
+export const EventUnsubscribeParamsSchema = z
+    .object({
+        topics: z.array(z.string())
+    })
+    .loose();
 
 /**
  * Response to events/unsubscribe.
  */
 export const EventUnsubscribeResultSchema = ResultSchema.extend({
-    unsubscribed: z.array(z.string()),
+    unsubscribed: z.array(z.string())
 });
 
 /**
@@ -2199,21 +2203,21 @@ export const EventUnsubscribeResultSchema = ResultSchema.extend({
  */
 export const EventUnsubscribeRequestSchema = RequestSchema.extend({
     method: z.literal('events/unsubscribe'),
-    params: EventUnsubscribeParamsSchema,
+    params: EventUnsubscribeParamsSchema
 });
 
 /**
  * Response to events/list.
  */
 export const EventListResultSchema = PaginatedResultSchema.extend({
-    topics: z.array(EventTopicDescriptorSchema),
+    topics: z.array(EventTopicDescriptorSchema)
 });
 
 /**
  * Client request to list available event topics.
  */
 export const EventListRequestSchema = PaginatedRequestSchema.extend({
-    method: z.literal('events/list'),
+    method: z.literal('events/list')
 });
 
 /* Client messages */
