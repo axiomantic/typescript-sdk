@@ -250,12 +250,8 @@ describe('Event Zod schemas', () => {
             expect(() => EventSubscribeParamsSchema.parse({})).toThrow();
         });
 
-        it('should reject empty topics array', () => {
-            // Empty array is technically valid per schema, but wrong type should fail
-            expect(() => EventSubscribeParamsSchema.parse({ topics: 'not-an-array' })).toThrow();
-        });
-
         it('should reject wrong type for topics', () => {
+            expect(() => EventSubscribeParamsSchema.parse({ topics: 'not-an-array' })).toThrow();
             expect(() => EventSubscribeParamsSchema.parse({ topics: 123 })).toThrow();
         });
     });
@@ -320,6 +316,10 @@ describe('Event Zod schemas', () => {
     describe('EventUnsubscribeParamsSchema', () => {
         it('should reject missing topics', () => {
             expect(() => EventUnsubscribeParamsSchema.parse({})).toThrow();
+        });
+
+        it('should reject wrong type for topics', () => {
+            expect(() => EventUnsubscribeParamsSchema.parse({ topics: 'not-an-array' })).toThrow();
         });
     });
 
