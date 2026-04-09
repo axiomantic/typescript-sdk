@@ -494,6 +494,83 @@ server.registerTool(
 );
 ```
 
+## Events (experimental)
+
+> [!WARNING]
+> The events API is experimental and may change without notice.
+
+Events let a server push asynchronous notifications to connected clients on named topics. Clients subscribe to topics they care about and receive events as they occur. This is useful for status updates, cross-session coordination, and any scenario where the server has information to broadcast outside the request/response cycle.
+
+### Declaring event capabilities
+
+Declare the `events` capability with topic descriptors when constructing the server. Each topic descriptor includes a pattern (with optional `{param}` placeholders), a description, and whether the last event should be retained for late subscribers:
+
+```ts
+const server = new McpServer(
+    { name: 'my-server', version: '1.0.0' },
+    {
+        capabilities: {
+            events: {
+                topics: [
+                    {
+                        pattern: 'builds/{project}/status',
+                        description: 'Build status updates',
+                        retained: true
+                    },
+                    {
+                        pattern: 'chat/{room}/messages',
+                        description: 'Chat messages in a room'
+                    }
+                ],
+                instructions: 'Subscribe to build topics to receive CI status. Chat topics deliver messages in real time.'
+            }
+        }
+    }
+);
+```
+
+### Schemas and types
+
+The protocol-level schemas live in `@modelcontextprotocol/core` (internal), with their inferred TypeScript types re-exported from `@modelcontextprotocol/core/types`:
+
+| Type | Schema | Purpose |
+|------|--------|---------|
+| `EventsCapability` | `EventsCapabilitySchema` | Server capability declaration with topic descriptors and instructions |
+| `EventTopicDescriptor` | `EventTopicDescriptorSchema` | Describes a topic: `pattern`, `description`, `retained`, `schema` |
+| `EventEffect` | `EventEffectSchema` | Requested effect: `type` (`inject_context`, `notify_user`, `trigger_turn`) and `priority` |
+| `EventParams` | `EventParamsSchema` | Notification payload: `topic`, `event_id`, `payload`, `timestamp`, `retained`, `source`, `correlation_id`, `requested_effects`, `expires_at` |
+| `EventEmitNotification` | `EventEmitNotificationSchema` | The `events/emit` notification sent from server to client |
+| `EventSubscribeRequest` | `EventSubscribeRequestSchema` | Client request to subscribe: `events/subscribe` with topic patterns |
+| `EventSubscribeResult` | `EventSubscribeResultSchema` | Subscribe response: `subscribed`, `rejected`, and `retained` events |
+| `EventUnsubscribeRequest` | `EventUnsubscribeRequestSchema` | Client request to unsubscribe: `events/unsubscribe` |
+| `EventListRequest` | `EventListRequestSchema` | Client request to list available topics: `events/list` |
+
+All event schemas are part of `ServerNotificationSchema` (`EventEmitNotificationSchema`) and `ClientRequestSchema` (`EventSubscribeRequestSchema`, `EventUnsubscribeRequestSchema`, `EventListRequestSchema`). The `events` field on `ServerCapabilities` carries the `EventsCapability` shape.
+
+### Protocol flow
+
+1. Server declares `events` in its capabilities during initialization, listing available topics.
+2. Client sends `events/subscribe` with an array of topic patterns. Patterns use `+` as a single-segment wildcard (MQTT-style), so `builds/+/status` matches `builds/frontend/status`.
+3. Server responds with `subscribed` (accepted patterns), `rejected` (with reasons), and `retained` (last-known values for retained topics).
+4. Server sends `events/emit` notifications as events occur. Each notification includes the `topic`, a unique `event_id`, an optional `payload`, and optional `requested_effects` that hint at how the client should handle the event.
+5. Client sends `events/unsubscribe` to stop receiving events on specific topics.
+
+### Requested effects
+
+Events can include `requested_effects` to suggest how the client should handle them. Each effect has a `type` and `priority`:
+
+| Effect | Description |
+|--------|-------------|
+| `inject_context` | Suggest the client inject the event payload into the model's context |
+| `notify_user` | Suggest the client show a notification to the user |
+| `trigger_turn` | Suggest the client start a new model turn to process the event |
+
+Priority levels are `low`, `normal` (default), `high`, and `urgent`. Clients decide whether to honor requested effects based on their own policies and user configuration.
+
+### Topic patterns
+
+Topic patterns use path segments separated by `/`. Use `{param}` placeholders in capability declarations to describe parameterized topics (e.g., `sessions/{session_id}/messages`). When subscribing, clients replace `{param}` segments with `+` wildcards to match all values for that segment.
+
 ## Tasks (experimental)
 
 > [!WARNING]
