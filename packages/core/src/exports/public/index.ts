@@ -76,12 +76,12 @@ export type { Variables } from '../../shared/uriTemplate.js';
 export { UriTemplate } from '../../shared/uriTemplate.js';
 
 // Provenance
-export { ProvenanceEnvelope } from '../../shared/provenance.js';
 export type { ProvenanceData } from '../../shared/provenance.js';
+export { ProvenanceEnvelope } from '../../shared/provenance.js';
 
 // Event Queue
-export { McpEventQueue } from '../../shared/event-queue.js';
-export type { McpEventQueueOptions } from '../../shared/event-queue.js';
+export type { McpEventQueueOptions } from '../../shared/eventQueue.js';
+export { McpEventQueue } from '../../shared/eventQueue.js';
 
 // Types — all TypeScript types (standalone interfaces + schema-derived).
 // This is the one intentional `export *`: types.ts contains only spec-derived TS

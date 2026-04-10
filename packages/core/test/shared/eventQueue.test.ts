@@ -1,4 +1,4 @@
-import { McpEventQueue } from '../../src/shared/event-queue.js';
+import { McpEventQueue } from '../../src/shared/eventQueue.js';
 import { ProvenanceEnvelope } from '../../src/shared/provenance.js';
 
 function makeEnvelope(topic: string, payload: unknown = {}): ProvenanceEnvelope {
