@@ -77,8 +77,11 @@ describe('Client event methods', () => {
             }
         });
 
-        // Allow async propagation
-        await new Promise(r => setTimeout(r, 50));
+        // Poll until the event arrives (up to 2000ms) to avoid flaky fixed delays
+        const deadline = Date.now() + 2000;
+        while (received.length === 0 && Date.now() < deadline) {
+            await new Promise(r => setTimeout(r, 10));
+        }
 
         expect(received).toHaveLength(1);
         expect(received[0].topic).toBe('myapp/status');

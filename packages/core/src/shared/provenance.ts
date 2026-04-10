@@ -32,13 +32,18 @@ export class ProvenanceEnvelope {
             attrs.push(`event_id="${escapeXml(this.provenance.original_event_id)}"`);
         }
 
-        const payloadXml =
-            typeof this.event.payload === 'string' ? escapeXml(this.event.payload) : escapeXml(JSON.stringify(this.event.payload));
+        const payloadStr =
+            this.event.payload === undefined
+                ? ''
+                : typeof this.event.payload === 'string'
+                  ? this.event.payload
+                  : JSON.stringify(this.event.payload);
+        const payloadXml = escapeXml(payloadStr);
 
         return `<mcp:event ${attrs.join(' ')} topic="${escapeXml(this.event.topic)}">${payloadXml}</mcp:event>`;
     }
 }
 
 function escapeXml(s: string): string {
-    return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
 }

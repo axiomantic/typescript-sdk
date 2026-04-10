@@ -19,7 +19,11 @@ export class McpEventQueue {
     private priorityFn: (event: ProvenanceEnvelope) => number;
 
     constructor(options?: McpEventQueueOptions) {
-        this.maxSize = options?.maxSize ?? 1000;
+        const maxSize = options?.maxSize ?? 1000;
+        if (maxSize <= 0) {
+            throw new RangeError(`McpEventQueue maxSize must be >= 1, got ${maxSize}`);
+        }
+        this.maxSize = maxSize;
         this.priorityFn = options?.priorityFn ?? (() => 0);
     }
 
