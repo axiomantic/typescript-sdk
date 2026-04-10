@@ -11,6 +11,8 @@ export { extractTaskManagerOptions, NullTaskManager, TaskManager } from './share
 export * from './shared/toolNameValidation.js';
 export * from './shared/transport.js';
 export * from './shared/uriTemplate.js';
+export * from './shared/provenance.js';
+export * from './shared/event-queue.js';
 export * from './types/index.js';
 export * from './util/inMemory.js';
 export * from './util/schema.js';

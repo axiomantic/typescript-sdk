@@ -33,7 +33,11 @@ import type {
     TaskManagerOptions,
     Tool,
     Transport,
-    UnsubscribeRequest
+    UnsubscribeRequest,
+    EventSubscribeRequest,
+    EventUnsubscribeRequest,
+    EventListRequest,
+    EventParams
 } from '@modelcontextprotocol/core';
 import {
     assertClientRequestTaskCapability,
@@ -63,7 +67,10 @@ import {
     ProtocolErrorCode,
     ReadResourceResultSchema,
     SdkError,
-    SdkErrorCode
+    SdkErrorCode,
+    EventSubscribeResultSchema,
+    EventUnsubscribeResultSchema,
+    EventListResultSchema
 } from '@modelcontextprotocol/core';
 
 import { ExperimentalClientTasks } from '../experimental/tasks/client.js';
@@ -629,6 +636,15 @@ export class Client extends Protocol<ClientContext> {
                 break;
             }
 
+            case 'events/subscribe':
+            case 'events/unsubscribe':
+            case 'events/list': {
+                if (!this._serverCapabilities?.events) {
+                    throw new SdkError(SdkErrorCode.CapabilityNotSupported, `Server does not support events (required for ${method})`);
+                }
+                break;
+            }
+
             case 'initialize': {
                 // No specific capability required for initialize
                 break;
@@ -1059,6 +1075,37 @@ export class Client extends Protocol<ClientContext> {
 
         // Register notification handler
         this.setNotificationHandler(notificationMethod, handler);
+    }
+
+    /**
+     * Subscribes to event topics on the server.
+     * Returns which topics were successfully subscribed, any rejections, and retained events.
+     */
+    async subscribeEvents(params: EventSubscribeRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/subscribe', params }, EventSubscribeResultSchema, options);
+    }
+
+    /**
+     * Unsubscribes from event topics on the server.
+     */
+    async unsubscribeEvents(params: EventUnsubscribeRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/unsubscribe', params }, EventUnsubscribeResultSchema, options);
+    }
+
+    /**
+     * Lists available event topic declarations from the server.
+     */
+    async listEvents(params?: EventListRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/list', params }, EventListResultSchema, options);
+    }
+
+    /**
+     * Registers a handler for events/emit notifications from the server.
+     */
+    onEvent(handler: (event: EventParams) => void): void {
+        this.setNotificationHandler('events/emit', (notification) => {
+            handler(notification.params as EventParams);
+        });
     }
 
     /** Notifies the server that the client's root list has changed. Requires the `roots.listChanged` capability. */
