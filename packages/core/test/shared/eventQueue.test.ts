@@ -24,7 +24,7 @@ describe('McpEventQueue', () => {
 
     it('should drain highest priority first', () => {
         const queue = new McpEventQueue({
-            priorityFn: (env) => env.event.topic === 'urgent' ? 10 : 1,
+            priorityFn: env => (env.event.topic === 'urgent' ? 10 : 1)
         });
         queue.enqueue(makeEnvelope('normal'));
         queue.enqueue(makeEnvelope('urgent'));
@@ -49,7 +49,7 @@ describe('McpEventQueue', () => {
     it('should reject enqueue when full and new item has lower priority', () => {
         const queue = new McpEventQueue({
             maxSize: 2,
-            priorityFn: (env) => env.event.topic === 'high' ? 10 : 1,
+            priorityFn: env => (env.event.topic === 'high' ? 10 : 1)
         });
         queue.enqueue(makeEnvelope('high'));
         queue.enqueue(makeEnvelope('high'));
@@ -61,7 +61,7 @@ describe('McpEventQueue', () => {
     it('should evict lowest priority when full and new item has higher priority', () => {
         const queue = new McpEventQueue({
             maxSize: 2,
-            priorityFn: (env) => env.event.topic === 'high' ? 10 : 1,
+            priorityFn: env => (env.event.topic === 'high' ? 10 : 1)
         });
         queue.enqueue(makeEnvelope('low'));
         queue.enqueue(makeEnvelope('low'));
