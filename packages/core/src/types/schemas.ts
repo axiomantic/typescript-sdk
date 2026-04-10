@@ -441,6 +441,17 @@ export const ClientCapabilitiesSchema = z.object({
      */
     tasks: ClientTasksCapabilitySchema.optional(),
     /**
+     * Present if the client supports receiving events from the server.
+     */
+    events: z
+        .object({
+            /**
+             * Whether the client supports receiving events from the server.
+             */
+            supported: z.boolean()
+        })
+        .optional(),
+    /**
      * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
      */
     extensions: z.record(z.string(), JSONObjectSchema).optional()

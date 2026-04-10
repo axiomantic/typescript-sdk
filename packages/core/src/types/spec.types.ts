@@ -579,6 +579,15 @@ export interface ClientCapabilities {
         };
     };
     /**
+     * Present if the client supports receiving events from the server.
+     */
+    events?: {
+        /**
+         * Whether the client supports receiving events from the server.
+         */
+        supported: boolean;
+    };
+    /**
      * Optional MCP extensions that the client supports. Keys are extension identifiers
      * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
      * per-extension settings objects. An empty object indicates support with no settings.

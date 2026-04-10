@@ -234,7 +234,8 @@ export class Client extends Protocol<ClientContext> {
             ...options,
             tasks: extractTaskManagerOptions(options?.capabilities?.tasks)
         });
-        this._capabilities = options?.capabilities ? { ...options.capabilities } : {};
+        // Always declare events capability: the Client class unconditionally supports events methods.
+        this._capabilities = { events: { supported: true }, ...options?.capabilities };
         this._jsonSchemaValidator = options?.jsonSchemaValidator ?? new DefaultJsonSchemaValidator();
         this._enforceStrictCapabilities = options?.enforceStrictCapabilities ?? false;
 
