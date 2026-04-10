@@ -1,8 +1,6 @@
 import { Client } from '@modelcontextprotocol/client';
-import {
-    InMemoryTransport,
-} from '@modelcontextprotocol/core';
 import type { EventParams } from '@modelcontextprotocol/core';
+import { InMemoryTransport } from '@modelcontextprotocol/core';
 import { Server } from '@modelcontextprotocol/server';
 
 describe('Client event methods', () => {
@@ -15,29 +13,24 @@ describe('Client event methods', () => {
         [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
         client = new Client({ name: 'test-client', version: '1.0.0' });
-        server = new Server(
-            { name: 'test-server', version: '1.0.0' },
-            { capabilities: { events: { topics: [] } } }
-        );
+        server = new Server({ name: 'test-server', version: '1.0.0' }, { capabilities: { events: { topics: [] } } });
 
         // Register event handlers on the server
-        server.setRequestHandler('events/subscribe', async (request) => {
+        server.setRequestHandler('events/subscribe', async request => {
             return {
                 subscribed: (request.params as { topics: string[] }).topics.map((t: string) => ({ pattern: t })),
                 rejected: [],
-                retained: [],
+                retained: []
             };
         });
 
-        server.setRequestHandler('events/unsubscribe', async (request) => {
+        server.setRequestHandler('events/unsubscribe', async request => {
             return { unsubscribed: (request.params as { topics: string[] }).topics };
         });
 
         server.setRequestHandler('events/list', async () => {
             return {
-                topics: [
-                    { pattern: 'myapp/status', description: 'Status updates' },
-                ],
+                topics: [{ pattern: 'myapp/status', description: 'Status updates' }]
             };
         });
 
@@ -70,7 +63,7 @@ describe('Client event methods', () => {
 
     it('onEvent() should receive events/emit notifications', async () => {
         const received: EventParams[] = [];
-        client.onEvent((event) => {
+        client.onEvent(event => {
             received.push(event);
         });
 
@@ -80,12 +73,12 @@ describe('Client event methods', () => {
             params: {
                 topic: 'myapp/status',
                 payload: { status: 'ok' },
-                event_id: 'evt-1',
-            },
+                event_id: 'evt-1'
+            }
         });
 
         // Allow async propagation
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 50));
 
         expect(received).toHaveLength(1);
         expect(received[0].topic).toBe('myapp/status');
