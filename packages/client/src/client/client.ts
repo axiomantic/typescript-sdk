@@ -8,6 +8,10 @@ import type {
     ClientRequest,
     ClientResult,
     CompleteRequest,
+    EventListRequest,
+    EventParams,
+    EventSubscribeRequest,
+    EventUnsubscribeRequest,
     GetPromptRequest,
     Implementation,
     JsonSchemaType,
@@ -33,11 +37,7 @@ import type {
     TaskManagerOptions,
     Tool,
     Transport,
-    UnsubscribeRequest,
-    EventSubscribeRequest,
-    EventUnsubscribeRequest,
-    EventListRequest,
-    EventParams
+    UnsubscribeRequest
 } from '@modelcontextprotocol/core';
 import {
     assertClientRequestTaskCapability,
@@ -51,6 +51,9 @@ import {
     ElicitRequestSchema,
     ElicitResultSchema,
     EmptyResultSchema,
+    EventListResultSchema,
+    EventSubscribeResultSchema,
+    EventUnsubscribeResultSchema,
     extractTaskManagerOptions,
     GetPromptResultSchema,
     InitializeResultSchema,
@@ -67,10 +70,7 @@ import {
     ProtocolErrorCode,
     ReadResourceResultSchema,
     SdkError,
-    SdkErrorCode,
-    EventSubscribeResultSchema,
-    EventUnsubscribeResultSchema,
-    EventListResultSchema
+    SdkErrorCode
 } from '@modelcontextprotocol/core';
 
 import { ExperimentalClientTasks } from '../experimental/tasks/client.js';
@@ -1103,7 +1103,7 @@ export class Client extends Protocol<ClientContext> {
      * Registers a handler for events/emit notifications from the server.
      */
     onEvent(handler: (event: EventParams) => void): void {
-        this.setNotificationHandler('events/emit', (notification) => {
+        this.setNotificationHandler('events/emit', notification => {
             handler(notification.params as EventParams);
         });
     }
