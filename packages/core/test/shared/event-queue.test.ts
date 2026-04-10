@@ -31,7 +31,8 @@ describe('McpEventQueue', () => {
         queue.enqueue(makeEnvelope('normal2'));
 
         const drained = queue.drain();
-        expect(drained[0].event.topic).toBe('urgent');
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        expect(drained[0]!.event.topic).toBe('urgent');
     });
 
     it('should respect drain count', () => {
@@ -68,7 +69,8 @@ describe('McpEventQueue', () => {
         expect(queue.size).toBe(2);
 
         const drained = queue.drain();
-        expect(drained[0].event.topic).toBe('high');
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        expect(drained[0]!.event.topic).toBe('high');
     });
 
     it('should return empty array when draining empty queue', () => {

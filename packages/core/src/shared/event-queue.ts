@@ -31,7 +31,9 @@ export class McpEventQueue {
     enqueue(envelope: ProvenanceEnvelope): boolean {
         if (this.queue.length >= this.maxSize) {
             const minIdx = this._findMinPriorityIndex();
-            const minPriority = this.priorityFn(this.queue[minIdx]);
+            // queue[minIdx] is always defined: queue is non-empty (length >= maxSize >= 1)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const minPriority = this.priorityFn(this.queue[minIdx]!);
             const newPriority = this.priorityFn(envelope);
             if (newPriority > minPriority) {
                 this.queue.splice(minIdx, 1);
@@ -63,9 +65,12 @@ export class McpEventQueue {
 
     private _findMinPriorityIndex(): number {
         let minIdx = 0;
-        let minPri = this.priorityFn(this.queue[0]);
+        // queue is non-empty when this is called (only called after length >= maxSize check)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        let minPri = this.priorityFn(this.queue[0]!);
         for (let i = 1; i < this.queue.length; i++) {
-            const pri = this.priorityFn(this.queue[i]);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const pri = this.priorityFn(this.queue[i]!);
             if (pri < minPri) {
                 minPri = pri;
                 minIdx = i;
