@@ -1,5 +1,3 @@
-import type { ReadableWritablePair } from 'node:stream/web';
-
 import type { FetchLike, JSONRPCMessage, Transport } from '../../../core/src/index.js';
 import {
     createFetchWithInit,
@@ -380,9 +378,15 @@ export class StreamableHTTPClientTransport implements Transport {
             // this is the closest we can get to trying to catch network errors
             // if something happens reader will throw
             try {
-                // Create a pipeline: binary stream -> text decoder -> SSE parser
+                // Create a pipeline: binary stream -> text decoder -> SSE parser.
+                // The TextDecoderStream shape (WritableStream<BufferSource>) is structurally
+                // compatible at runtime but not assignable to the ReadableWritablePair that
+                // pipeThrough expects under strict typechecking, and consumers may have DOM
+                // lib enabled (which pulls in a different ReadableWritablePair than node:stream/web).
+                // Cast via `unknown` to the parameter type resolved from the current stream, so
+                // the target matches whichever lib (DOM or node:stream/web) the consumer uses.
                 const reader = stream
-                    .pipeThrough(new TextDecoderStream() as ReadableWritablePair<string, Uint8Array>)
+                    .pipeThrough(new TextDecoderStream() as unknown as Parameters<typeof stream.pipeThrough<string>>[0])
                     .pipeThrough(
                         new EventSourceParserStream({
                             onRetry: (retryMs: number) => {
