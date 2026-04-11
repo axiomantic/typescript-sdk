@@ -1,4 +1,4 @@
-import type { FetchLike } from '@modelcontextprotocol/core';
+import type { FetchLike } from '../../../core/src/index.js';
 
 import type { OAuthClientProvider } from './auth.js';
 import { auth, extractWWWAuthenticateParams, UnauthorizedError } from './auth.js';

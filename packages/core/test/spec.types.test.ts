@@ -760,6 +760,10 @@ const sdkTypeChecks = {
     ElicitResultResponse: (sdk: TypedResultResponse<SDKTypes.ElicitResult>, spec: SpecTypes.ElicitResultResponse) => {
         sdk = spec;
         spec = sdk;
+    },
+    EventTopicDescriptor: (sdk: SDKTypes.EventTopicDescriptor, spec: SpecTypes.EventTopicDescriptor) => {
+        sdk = spec;
+        spec = sdk;
     }
 };
 
@@ -1022,6 +1026,7 @@ type _K_CreateMessageResultResponse = Assert<
 type _K_CompleteResultResponse = Assert<AssertExactKeys<TypedResultResponse<SDKTypes.CompleteResult>, SpecTypes.CompleteResultResponse>>;
 type _K_ListRootsResultResponse = Assert<AssertExactKeys<TypedResultResponse<SDKTypes.ListRootsResult>, SpecTypes.ListRootsResultResponse>>;
 type _K_ElicitResultResponse = Assert<AssertExactKeys<TypedResultResponse<SDKTypes.ElicitResult>, SpecTypes.ElicitResultResponse>>;
+type _K_EventTopicDescriptor = Assert<AssertExactKeys<SDKTypes.EventTopicDescriptor, SpecTypes.EventTopicDescriptor>>;
 
 // -- Name mismatches (2) --
 // SDK exports these under different names than the spec.
@@ -1086,7 +1091,7 @@ describe('Spec Types', () => {
     it('should define some expected types', () => {
         expect(specTypes).toContain('JSONRPCNotification');
         expect(specTypes).toContain('ElicitResult');
-        expect(specTypes).toHaveLength(176);
+        expect(specTypes).toHaveLength(177);
     });
 
     it('should have up to date list of missing sdk types', () => {

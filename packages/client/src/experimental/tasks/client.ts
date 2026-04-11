@@ -19,14 +19,14 @@ import type {
     RequestOptions,
     ResponseMessage,
     ResultTypeMap
-} from '@modelcontextprotocol/core';
+} from '../../../../core/src/index.js';
 import {
     CallToolResultSchema,
     getResultSchema,
     GetTaskPayloadResultSchema,
     ProtocolError,
     ProtocolErrorCode
-} from '@modelcontextprotocol/core';
+} from '../../../../core/src/index.js';
 
 import type { Client } from '../../client/client.js';
 

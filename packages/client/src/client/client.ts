@@ -1,4 +1,4 @@
-import { DefaultJsonSchemaValidator } from '@modelcontextprotocol/client/_shims';
+import { DefaultJsonSchemaValidator } from '../shimsNode.js';
 import type {
     BaseContext,
     CallToolRequest,
@@ -8,6 +8,10 @@ import type {
     ClientRequest,
     ClientResult,
     CompleteRequest,
+    EventListRequest,
+    EventParams,
+    EventSubscribeRequest,
+    EventUnsubscribeRequest,
     GetPromptRequest,
     Implementation,
     JsonSchemaType,
@@ -34,7 +38,7 @@ import type {
     Tool,
     Transport,
     UnsubscribeRequest
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import {
     assertClientRequestTaskCapability,
     assertToolsCallTaskCapability,
@@ -47,6 +51,9 @@ import {
     ElicitRequestSchema,
     ElicitResultSchema,
     EmptyResultSchema,
+    EventListResultSchema,
+    EventSubscribeResultSchema,
+    EventUnsubscribeResultSchema,
     extractTaskManagerOptions,
     GetPromptResultSchema,
     InitializeResultSchema,
@@ -64,7 +71,7 @@ import {
     ReadResourceResultSchema,
     SdkError,
     SdkErrorCode
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 
 import { ExperimentalClientTasks } from '../experimental/tasks/client.js';
 
@@ -227,7 +234,8 @@ export class Client extends Protocol<ClientContext> {
             ...options,
             tasks: extractTaskManagerOptions(options?.capabilities?.tasks)
         });
-        this._capabilities = options?.capabilities ? { ...options.capabilities } : {};
+        // Always declare events capability: the Client class unconditionally supports events methods.
+        this._capabilities = { events: { supported: true }, ...options?.capabilities };
         this._jsonSchemaValidator = options?.jsonSchemaValidator ?? new DefaultJsonSchemaValidator();
         this._enforceStrictCapabilities = options?.enforceStrictCapabilities ?? false;
 
@@ -625,6 +633,15 @@ export class Client extends Protocol<ClientContext> {
             case 'completion/complete': {
                 if (!this._serverCapabilities?.completions) {
                     throw new SdkError(SdkErrorCode.CapabilityNotSupported, `Server does not support completions (required for ${method})`);
+                }
+                break;
+            }
+
+            case 'events/subscribe':
+            case 'events/unsubscribe':
+            case 'events/list': {
+                if (!this._serverCapabilities?.events) {
+                    throw new SdkError(SdkErrorCode.CapabilityNotSupported, `Server does not support events (required for ${method})`);
                 }
                 break;
             }
@@ -1059,6 +1076,37 @@ export class Client extends Protocol<ClientContext> {
 
         // Register notification handler
         this.setNotificationHandler(notificationMethod, handler);
+    }
+
+    /**
+     * Subscribes to event topics on the server.
+     * Returns which topics were successfully subscribed, any rejections, and retained events.
+     */
+    async subscribeEvents(params: EventSubscribeRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/subscribe', params }, EventSubscribeResultSchema, options);
+    }
+
+    /**
+     * Unsubscribes from event topics on the server.
+     */
+    async unsubscribeEvents(params: EventUnsubscribeRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/unsubscribe', params }, EventUnsubscribeResultSchema, options);
+    }
+
+    /**
+     * Lists available event topic declarations from the server.
+     */
+    async listEvents(params?: EventListRequest['params'], options?: RequestOptions) {
+        return this._requestWithSchema({ method: 'events/list', params }, EventListResultSchema, options);
+    }
+
+    /**
+     * Registers a handler for events/emit notifications from the server.
+     */
+    onEvent(handler: (event: EventParams) => void): void {
+        this.setNotificationHandler('events/emit', notification => {
+            handler(notification.params as EventParams);
+        });
     }
 
     /** Notifies the server that the client's root list has changed. Requires the `roots.listChanged` capability. */

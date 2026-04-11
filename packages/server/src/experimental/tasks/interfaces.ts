@@ -11,7 +11,7 @@ import type {
     Result,
     StandardSchemaWithJSON,
     TaskServerContext
-} from '@modelcontextprotocol/core';
+} from '../../../../core/src/index.js';
 
 import type { BaseToolCallback } from '../../server/mcp.js';
 

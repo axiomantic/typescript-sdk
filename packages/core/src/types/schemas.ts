@@ -441,6 +441,17 @@ export const ClientCapabilitiesSchema = z.object({
      */
     tasks: ClientTasksCapabilitySchema.optional(),
     /**
+     * Present if the client supports receiving events from the server.
+     */
+    events: z
+        .object({
+            /**
+             * Whether the client supports receiving events from the server.
+             */
+            supported: z.boolean()
+        })
+        .optional(),
+    /**
      * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
      */
     extensions: z.record(z.string(), JSONObjectSchema).optional()
@@ -460,6 +471,48 @@ export const InitializeRequestParamsSchema = BaseRequestParamsSchema.extend({
 export const InitializeRequestSchema = RequestSchema.extend({
     method: z.literal('initialize'),
     params: InitializeRequestParamsSchema
+});
+
+/* Events */
+/**
+ * Priority levels for events. Servers declare priority on each emission;
+ * clients use it to order queued events and apply priority-dependent policies.
+ */
+export const EventPrioritySchema = z.enum(['urgent', 'high', 'normal', 'low']);
+
+/**
+ * Kind of topic: `content` is meaningful for conversational context and
+ * suitable for LLM injection, while `signal` carries machine-to-machine
+ * data not intended for the LLM.
+ */
+export const EventKindSchema = z.enum(['content', 'signal']);
+
+/**
+ * Suggested client-side handling hint. Clients are free to override.
+ */
+export const EventHandleSchema = z.enum(['drop', 'silent', 'notify', 'ask', 'inject', 'interrupt']);
+
+/**
+ * Describes a topic the server can publish to.
+ *
+ * Per MCP Events spec v2, topic declarations include a REQUIRED `kind`
+ * (content vs. signal) and optional client handling hints.
+ */
+export const EventTopicDescriptorSchema = z.object({
+    pattern: z.string(),
+    kind: EventKindSchema,
+    description: z.string().optional(),
+    suggestedHandle: EventHandleSchema.optional(),
+    retained: z.boolean().optional(),
+    schema: JSONObjectSchema.optional()
+});
+
+/**
+ * Server capability for events.
+ */
+export const EventsCapabilitySchema = z.looseObject({
+    topics: z.array(EventTopicDescriptorSchema).optional().default([]),
+    instructions: z.string().optional()
 });
 
 /**
@@ -520,6 +573,10 @@ export const ServerCapabilitiesSchema = z.object({
      * Present if the server supports task creation.
      */
     tasks: ServerTasksCapabilitySchema.optional(),
+    /**
+     * Present if the server supports publishing events to clients.
+     */
+    events: EventsCapabilitySchema.optional(),
     /**
      * Extensions that the server supports. Keys are extension identifiers (vendor-prefix/extension-name).
      */
@@ -2075,6 +2132,127 @@ export const RootsListChangedNotificationSchema = NotificationSchema.extend({
     params: NotificationsParamsSchema.optional()
 });
 
+/* Events */
+/**
+ * Parameters for events/emit notification (camelCase wire format per v2 spec).
+ *
+ * Extends NotificationsParamsSchema to inherit `_meta`. `priority` is a
+ * top-level wire field. `eventId` and `expiresAt` are camelCase per
+ * JSON-RPC convention. `correlationId` and `requestedEffects` have been
+ * removed from the v2 wire format: applications that need request /
+ * response correlation MAY carry an identifier inside `payload`.
+ */
+export const EventParamsSchema = NotificationsParamsSchema.extend({
+    topic: z.string(),
+    payload: JSONValueSchema.optional(),
+    eventId: z.string(),
+    priority: EventPrioritySchema.optional(),
+    source: z.string().optional(),
+    expiresAt: z.iso.datetime({ offset: true }).optional(),
+    retained: z.boolean().optional()
+}).loose();
+
+/**
+ * Event notification sent from server to client.
+ */
+export const EventEmitNotificationSchema = NotificationSchema.extend({
+    method: z.literal('events/emit'),
+    params: EventParamsSchema
+});
+
+/**
+ * Parameters for events/subscribe request.
+ */
+export const EventSubscribeParamsSchema = z
+    .object({
+        topics: z.array(z.string())
+    })
+    .loose();
+
+/**
+ * A topic pattern that was successfully subscribed.
+ */
+export const SubscribedTopicSchema = z.object({
+    pattern: z.string()
+});
+
+/**
+ * A topic pattern that was rejected, with reason.
+ */
+export const RejectedTopicSchema = z.object({
+    pattern: z.string(),
+    reason: z.string()
+});
+
+/**
+ * A retained event delivered on subscribe.
+ *
+ * Uses camelCase `eventId` per v2 wire format. The optional `retained`
+ * flag mirrors the field on emitted events and is typically `true` for
+ * values delivered from the retained store.
+ */
+export const RetainedEventSchema = z.object({
+    topic: z.string(),
+    eventId: z.string(),
+    payload: JSONValueSchema.optional(),
+    retained: z.boolean().optional()
+});
+
+/**
+ * Response to events/subscribe.
+ */
+export const EventSubscribeResultSchema = ResultSchema.extend({
+    subscribed: z.array(SubscribedTopicSchema),
+    rejected: z.array(RejectedTopicSchema).optional().default([]),
+    retained: z.array(RetainedEventSchema).optional().default([])
+});
+
+/**
+ * Client request to subscribe to event topics.
+ */
+export const EventSubscribeRequestSchema = RequestSchema.extend({
+    method: z.literal('events/subscribe'),
+    params: EventSubscribeParamsSchema
+});
+
+/**
+ * Parameters for events/unsubscribe request.
+ */
+export const EventUnsubscribeParamsSchema = z
+    .object({
+        topics: z.array(z.string())
+    })
+    .loose();
+
+/**
+ * Response to events/unsubscribe.
+ */
+export const EventUnsubscribeResultSchema = ResultSchema.extend({
+    unsubscribed: z.array(z.string())
+});
+
+/**
+ * Client request to unsubscribe from event topics.
+ */
+export const EventUnsubscribeRequestSchema = RequestSchema.extend({
+    method: z.literal('events/unsubscribe'),
+    params: EventUnsubscribeParamsSchema
+});
+
+/**
+ * Response to events/list.
+ */
+export const EventListResultSchema = PaginatedResultSchema.extend({
+    topics: z.array(EventTopicDescriptorSchema)
+});
+
+/**
+ * Client request to list available event topics.
+ */
+export const EventListRequestSchema = PaginatedRequestSchema.extend({
+    method: z.literal('events/list')
+});
+
 /* Client messages */
 export const ClientRequestSchema = z.union([
     PingRequestSchema,
@@ -2093,7 +2271,10 @@ export const ClientRequestSchema = z.union([
     GetTaskRequestSchema,
     GetTaskPayloadRequestSchema,
     ListTasksRequestSchema,
-    CancelTaskRequestSchema
+    CancelTaskRequestSchema,
+    EventSubscribeRequestSchema,
+    EventUnsubscribeRequestSchema,
+    EventListRequestSchema
 ]);
 
 export const ClientNotificationSchema = z.union([
@@ -2136,7 +2317,8 @@ export const ServerNotificationSchema = z.union([
     ToolListChangedNotificationSchema,
     PromptListChangedNotificationSchema,
     TaskStatusNotificationSchema,
-    ElicitationCompleteNotificationSchema
+    ElicitationCompleteNotificationSchema,
+    EventEmitNotificationSchema
 ]);
 
 export const ServerResultSchema = z.union([
@@ -2152,7 +2334,10 @@ export const ServerResultSchema = z.union([
     ListToolsResultSchema,
     GetTaskResultSchema,
     ListTasksResultSchema,
-    CreateTaskResultSchema
+    CreateTaskResultSchema,
+    EventSubscribeResultSchema,
+    EventUnsubscribeResultSchema,
+    EventListResultSchema
 ]);
 
 /* Runtime schema lookup — result schemas by method */
@@ -2176,7 +2361,10 @@ const resultSchemas: Record<string, z.core.$ZodType> = {
     'tasks/get': GetTaskResultSchema,
     'tasks/result': ResultSchema,
     'tasks/list': ListTasksResultSchema,
-    'tasks/cancel': CancelTaskResultSchema
+    'tasks/cancel': CancelTaskResultSchema,
+    'events/subscribe': EventSubscribeResultSchema,
+    'events/unsubscribe': EventUnsubscribeResultSchema,
+    'events/list': EventListResultSchema
 };
 
 /**

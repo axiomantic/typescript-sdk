@@ -1,4 +1,4 @@
-import { CORS_IS_POSSIBLE } from '@modelcontextprotocol/client/_shims';
+import { CORS_IS_POSSIBLE } from '../shimsNode.js';
 import type {
     AuthorizationServerMetadata,
     FetchLike,
@@ -9,7 +9,7 @@ import type {
     OAuthMetadata,
     OAuthProtectedResourceMetadata,
     OAuthTokens
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import {
     checkResourceAllowed,
     LATEST_PROTOCOL_VERSION,
@@ -22,7 +22,7 @@ import {
     OAuthTokensSchema,
     OpenIdProviderDiscoveryMetadataSchema,
     resourceUrlFromServerUrl
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import pkceChallenge from 'pkce-challenge';
 
 /**

@@ -44,6 +44,21 @@ import type {
     EmbeddedResourceSchema,
     EmptyResultSchema,
     EnumSchemaSchema,
+    EventEmitNotificationSchema,
+    EventHandleSchema,
+    EventKindSchema,
+    EventListRequestSchema,
+    EventListResultSchema,
+    EventParamsSchema,
+    EventPrioritySchema,
+    EventsCapabilitySchema,
+    EventSubscribeParamsSchema,
+    EventSubscribeRequestSchema,
+    EventSubscribeResultSchema,
+    EventTopicDescriptorSchema,
+    EventUnsubscribeParamsSchema,
+    EventUnsubscribeRequestSchema,
+    EventUnsubscribeResultSchema,
     GetPromptRequestParamsSchema,
     GetPromptRequestSchema,
     GetPromptResultSchema,
@@ -104,6 +119,7 @@ import type {
     ReadResourceRequestParamsSchema,
     ReadResourceRequestSchema,
     ReadResourceResultSchema,
+    RejectedTopicSchema,
     RelatedTaskMetadataSchema,
     RequestIdSchema,
     RequestMetaSchema,
@@ -118,6 +134,7 @@ import type {
     ResourceUpdatedNotificationParamsSchema,
     ResourceUpdatedNotificationSchema,
     ResultSchema,
+    RetainedEventSchema,
     RoleSchema,
     RootSchema,
     RootsListChangedNotificationSchema,
@@ -132,6 +149,7 @@ import type {
     SetLevelRequestSchema,
     SingleSelectEnumSchemaSchema,
     StringSchemaSchema,
+    SubscribedTopicSchema,
     SubscribeRequestParamsSchema,
     SubscribeRequestSchema,
     TaskAugmentedRequestParamsSchema,
@@ -362,6 +380,26 @@ export type ListRootsRequest = Infer<typeof ListRootsRequestSchema>;
 export type ListRootsResult = Infer<typeof ListRootsResultSchema>;
 export type RootsListChangedNotification = Infer<typeof RootsListChangedNotificationSchema>;
 
+/* Events */
+export type EventPriority = Infer<typeof EventPrioritySchema>;
+export type EventKind = Infer<typeof EventKindSchema>;
+export type EventHandle = Infer<typeof EventHandleSchema>;
+export type EventTopicDescriptor = Infer<typeof EventTopicDescriptorSchema>;
+export type EventsCapability = Infer<typeof EventsCapabilitySchema>;
+export type EventParams = Infer<typeof EventParamsSchema>;
+export type EventEmitNotification = Infer<typeof EventEmitNotificationSchema>;
+export type EventSubscribeParams = Infer<typeof EventSubscribeParamsSchema>;
+export type SubscribedTopic = Infer<typeof SubscribedTopicSchema>;
+export type RejectedTopic = Infer<typeof RejectedTopicSchema>;
+export type RetainedEvent = Infer<typeof RetainedEventSchema>;
+export type EventSubscribeResult = Infer<typeof EventSubscribeResultSchema>;
+export type EventSubscribeRequest = Infer<typeof EventSubscribeRequestSchema>;
+export type EventUnsubscribeParams = Infer<typeof EventUnsubscribeParamsSchema>;
+export type EventUnsubscribeResult = Infer<typeof EventUnsubscribeResultSchema>;
+export type EventUnsubscribeRequest = Infer<typeof EventUnsubscribeRequestSchema>;
+export type EventListResult = Infer<typeof EventListResultSchema>;
+export type EventListRequest = Infer<typeof EventListRequestSchema>;
+
 /* Client messages */
 export type ClientRequest = Infer<typeof ClientRequestSchema>;
 export type ClientNotification = Infer<typeof ClientNotificationSchema>;
@@ -401,6 +439,9 @@ export type ResultTypeMap = {
     'tasks/result': Result;
     'tasks/list': ListTasksResult;
     'tasks/cancel': CancelTaskResult;
+    'events/subscribe': EventSubscribeResult;
+    'events/unsubscribe': EventUnsubscribeResult;
+    'events/list': EventListResult;
 };
 
 /**

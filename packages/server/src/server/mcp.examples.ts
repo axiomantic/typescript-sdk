@@ -7,7 +7,7 @@
  * @module
  */
 
-import type { CallToolResult } from '@modelcontextprotocol/core';
+import type { CallToolResult } from '../../../core/src/index.js';
 import * as z from 'zod/v4';
 
 import { McpServer } from './mcp.js';

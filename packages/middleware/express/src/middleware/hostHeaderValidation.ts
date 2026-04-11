@@ -1,4 +1,4 @@
-import { localhostAllowedHostnames, validateHostHeader } from '@modelcontextprotocol/server';
+import { localhostAllowedHostnames, validateHostHeader } from '../../../../server/src/index.js';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 /**

@@ -26,7 +26,7 @@ import type {
     ToolExecution,
     Transport,
     Variables
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import {
     assertCompleteRequestPrompt,
     assertCompleteRequestResourceTemplate,
@@ -37,7 +37,7 @@ import {
     UriTemplate,
     validateAndWarnToolName,
     validateStandardSchema
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 
 import type { ToolTaskHandler } from '../experimental/tasks/interfaces.js';
 import { ExperimentalMcpServerTasks } from '../experimental/tasks/mcpServer.js';

@@ -7,7 +7,7 @@
  * For Node.js Express/HTTP compatibility, use {@linkcode @modelcontextprotocol/node!NodeStreamableHTTPServerTransport | NodeStreamableHTTPServerTransport} which wraps this transport.
  */
 
-import type { AuthInfo, JSONRPCMessage, MessageExtraInfo, RequestId, Transport } from '@modelcontextprotocol/core';
+import type { AuthInfo, JSONRPCMessage, MessageExtraInfo, RequestId, Transport } from '../../../core/src/index.js';
 import {
     DEFAULT_NEGOTIATED_PROTOCOL_VERSION,
     isInitializeRequest,
@@ -16,7 +16,7 @@ import {
     isJSONRPCResultResponse,
     JSONRPCMessageSchema,
     SUPPORTED_PROTOCOL_VERSIONS
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 
 export type StreamId = string;
 export type EventId = string;

@@ -579,6 +579,15 @@ export interface ClientCapabilities {
         };
     };
     /**
+     * Present if the client supports receiving events from the server.
+     */
+    events?: {
+        /**
+         * Whether the client supports receiving events from the server.
+         */
+        supported: boolean;
+    };
+    /**
      * Optional MCP extensions that the client supports. Keys are extension identifiers
      * (e.g., "io.modelcontextprotocol/oauth-client-credentials"), and values are
      * per-extension settings objects. An empty object indicates support with no settings.
@@ -587,6 +596,47 @@ export interface ClientCapabilities {
      * {@includeCode ./examples/ClientCapabilities/extensions-ui-mime-types.json}
      */
     extensions?: { [key: string]: JSONObject };
+}
+
+/**
+ * Describes a topic the server can publish to.
+ *
+ * NOTE: This interface has been extended locally on the `mcp-events` branch
+ * with MCP Events Spec v2 fields (`kind`, `suggestedHandle`) that are not
+ * yet merged into the upstream schema. Running `pnpm run fetch:spec-types`
+ * will overwrite these additions until the upstream spec is updated.
+ *
+ * @category `events`
+ */
+export interface EventTopicDescriptor {
+    /**
+     * A pattern identifying the topic.
+     */
+    pattern: string;
+    /**
+     * Topic kind. `content` is meaningful to conversational context (suitable
+     * for LLM injection); `signal` is machine-to-machine data (not suitable
+     * for LLM injection). REQUIRED.
+     */
+    kind: 'content' | 'signal';
+    /**
+     * A human-readable description of the topic.
+     */
+    description?: string;
+    /**
+     * Server's suggested client handling mode. Advisory only; clients are
+     * free to override. One of `drop`, `silent`, `notify`, `ask`, `inject`,
+     * `interrupt`.
+     */
+    suggestedHandle?: 'drop' | 'silent' | 'notify' | 'ask' | 'inject' | 'interrupt';
+    /**
+     * Whether the server retains the last published message for this topic.
+     */
+    retained?: boolean;
+    /**
+     * An optional JSON Schema describing the shape of messages on this topic.
+     */
+    schema?: JSONObject;
 }
 
 /**
@@ -694,6 +744,20 @@ export interface ServerCapabilities {
                 call?: JSONObject;
             };
         };
+    };
+    /**
+     * Present if the server supports publishing events to clients.
+     */
+    events?: {
+        /**
+         * Topics the server can publish to.
+         */
+        topics: EventTopicDescriptor[];
+        /**
+         * Instructions describing the server's events capability.
+         */
+        instructions?: string;
+        [key: string]: unknown;
     };
     /**
      * Optional MCP extensions that the server supports. Keys are extension identifiers

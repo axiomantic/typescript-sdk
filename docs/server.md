@@ -494,6 +494,78 @@ server.registerTool(
 );
 ```
 
+## Events (experimental)
+
+> [!WARNING]
+> The events API is experimental and may change without notice.
+
+Events let a server push asynchronous notifications to connected clients on named topics. Clients subscribe to topics they care about and receive events as they occur. This is useful for status updates, cross-session coordination, and any scenario where the server has information to broadcast outside the request/response cycle.
+
+### Declaring event capabilities
+
+Declare the `events` capability with topic descriptors when constructing the server. Each topic descriptor includes a pattern (use `{agent_id}` for agent-scoped topics), a required `kind` (`content` for LLM-facing payloads or `signal` for machine-only data), a description, and whether the last event should be retained for late subscribers. `suggestedHandle` is an optional hint clients may use when deciding how to handle events on the topic:
+
+```ts
+const server = new McpServer(
+    { name: 'my-server', version: '1.0.0' },
+    {
+        capabilities: {
+            events: {
+                topics: [
+                    {
+                        pattern: 'builds/{project}/status',
+                        kind: 'content',
+                        description: 'Build status updates',
+                        suggestedHandle: 'notify',
+                        retained: true
+                    },
+                    {
+                        pattern: 'chat/{room}/messages',
+                        kind: 'content',
+                        description: 'Chat messages in a room',
+                        suggestedHandle: 'inject'
+                    }
+                ],
+                instructions: 'Subscribe to build topics to receive CI status. Chat topics deliver messages in real time.'
+            }
+        }
+    }
+);
+```
+
+### Schemas and types
+
+The protocol-level schemas live in `@modelcontextprotocol/core` (internal), with their inferred TypeScript types re-exported from `@modelcontextprotocol/core/types`:
+
+| Type | Schema | Purpose |
+|------|--------|---------|
+| `EventsCapability` | `EventsCapabilitySchema` | Server capability declaration with topic descriptors and instructions |
+| `EventTopicDescriptor` | `EventTopicDescriptorSchema` | Describes a topic: `pattern`, `kind` (`content` \| `signal`), `description`, `suggestedHandle`, `retained`, `schema` |
+| `EventParams` | `EventParamsSchema` | Notification payload: `topic`, `eventId`, `payload`, `priority`, `source`, `expiresAt`, `retained` |
+| `EventEmitNotification` | `EventEmitNotificationSchema` | The `events/emit` notification sent from server to client |
+| `EventSubscribeRequest` | `EventSubscribeRequestSchema` | Client request to subscribe: `events/subscribe` with topic patterns |
+| `EventSubscribeResult` | `EventSubscribeResultSchema` | Subscribe response: `subscribed`, `rejected`, and `retained` events |
+| `EventUnsubscribeRequest` | `EventUnsubscribeRequestSchema` | Client request to unsubscribe: `events/unsubscribe` |
+| `EventListRequest` | `EventListRequestSchema` | Client request to list available topics: `events/list` |
+
+All event schemas are part of `ServerNotificationSchema` (`EventEmitNotificationSchema`) and `ClientRequestSchema` (`EventSubscribeRequestSchema`, `EventUnsubscribeRequestSchema`, `EventListRequestSchema`). The `events` field on `ServerCapabilities` carries the `EventsCapability` shape.
+
+### Protocol flow
+
+1. Server declares `events` in its capabilities during initialization, listing available topics.
+2. Client sends `events/subscribe` with an array of topic patterns. Patterns support MQTT-style wildcards: `+` matches a single path segment (e.g., `builds/+/status` matches `builds/frontend/status`) and `#` matches zero or more trailing segments (e.g., `builds/#` matches `builds/frontend/status` and `builds/backend`). The `#` wildcard may only appear as the last segment of a pattern.
+3. Server responds with `subscribed` (accepted patterns), `rejected` (with reasons), and `retained` (last-known values for retained topics).
+4. Server sends `events/emit` notifications as events occur. Each notification includes the `topic`, a unique `eventId`, an optional `payload`, and an optional top-level `priority` that hints at how the client should order and handle the event.
+5. Client sends `events/unsubscribe` to stop receiving events on specific topics.
+
+### Priority and handling
+
+Events carry a top-level `priority` field. Priority levels are `low`, `normal` (default), `high`, and `urgent`. Clients use priority to order queued events and to apply priority-dependent policies (for example, honoring a `suggestedHandle` differently for `urgent` vs. `low` events). Servers declare the per-topic `kind` (`content` vs. `signal`) and optional `suggestedHandle` (`drop`, `silent`, `notify`, `ask`, `inject`, `interrupt`) on each topic descriptor. Clients remain free to override handling based on their own configuration.
+
+### Topic patterns
+
+Topic patterns use path segments separated by `/`. Use `{agent_id}` in capability declarations to describe topics scoped to an application-level agent (for example, `agents/{agent_id}/messages`). The `{agent_id}` placeholder is a CLIENT-SIDE concept: the client substitutes its own agent id before subscribing, and the server receives fully resolved topic strings. When subscribing, clients use MQTT-style wildcards: `+` replaces a single segment (e.g., `agents/+/messages` matches any agent's messages) and `#` matches zero or more trailing segments and may only appear as the last segment (e.g., `agents/#` matches everything under `agents/`).
+
 ## Tasks (experimental)
 
 > [!WARNING]

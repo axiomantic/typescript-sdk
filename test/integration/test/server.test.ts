@@ -312,7 +312,7 @@ test('should respect client capabilities', async () => {
 
     await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
 
-    expect(server.getClientCapabilities()).toEqual({ sampling: {} });
+    expect(server.getClientCapabilities()).toEqual({ sampling: {}, events: { supported: true } });
 
     // This should work because sampling is supported by the client
     await expect(
@@ -368,7 +368,7 @@ test('should respect client elicitation capabilities', async () => {
     await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
 
     // After schema parsing, empty elicitation object should have form capability injected
-    expect(server.getClientCapabilities()).toEqual({ elicitation: { form: {} } });
+    expect(server.getClientCapabilities()).toEqual({ elicitation: { form: {} }, events: { supported: true } });
 
     // This should work because elicitation is supported by the client
     await expect(
@@ -452,7 +452,7 @@ test('should use elicitInput with mode: "form" by default for backwards compatib
     await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
 
     // After schema parsing, empty elicitation object should have form capability injected
-    expect(server.getClientCapabilities()).toEqual({ elicitation: { form: {} } });
+    expect(server.getClientCapabilities()).toEqual({ elicitation: { form: {} }, events: { supported: true } });
 
     // This should work because elicitation is supported by the client
     await expect(
@@ -3421,7 +3421,8 @@ test('should respect client task capabilities', async () => {
                     create: {}
                 }
             }
-        }
+        },
+        events: { supported: true }
     });
 
     // These should work because client supports tasks

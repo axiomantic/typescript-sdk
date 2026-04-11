@@ -7,7 +7,7 @@
  * @module
  */
 
-import type { Prompt, Resource, Tool } from '@modelcontextprotocol/core';
+import type { Prompt, Resource, Tool } from '../../../core/src/index.js';
 
 import { Client } from './client.js';
 import { SSEClientTransport } from './sse.js';

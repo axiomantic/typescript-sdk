@@ -32,7 +32,7 @@ import type {
     TaskManagerOptions,
     ToolResultContent,
     ToolUseContent
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import {
     assertClientRequestTaskCapability,
     assertToolsCallTaskCapability,
@@ -54,8 +54,8 @@ import {
     ProtocolErrorCode,
     SdkError,
     SdkErrorCode
-} from '@modelcontextprotocol/core';
-import { DefaultJsonSchemaValidator } from '@modelcontextprotocol/server/_shims';
+} from '../../../core/src/index.js';
+import { DefaultJsonSchemaValidator } from '../shimsNode.js';
 
 import { ExperimentalServerTasks } from '../experimental/tasks/server.js';
 
