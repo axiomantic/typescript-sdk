@@ -1,4 +1,4 @@
-import type { StandardSchemaWithJSON } from '@modelcontextprotocol/core';
+import type { StandardSchemaWithJSON } from '../../../core/src/index.js';
 
 export const COMPLETABLE_SYMBOL: unique symbol = Symbol.for('mcp.completable');
 

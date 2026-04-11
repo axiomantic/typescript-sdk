@@ -1,4 +1,4 @@
-import { DefaultJsonSchemaValidator } from '@modelcontextprotocol/client/_shims';
+import { DefaultJsonSchemaValidator } from '../shimsNode.js';
 import type {
     BaseContext,
     CallToolRequest,
@@ -38,7 +38,7 @@ import type {
     Tool,
     Transport,
     UnsubscribeRequest
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 import {
     assertClientRequestTaskCapability,
     assertToolsCallTaskCapability,
@@ -71,7 +71,7 @@ import {
     ReadResourceResultSchema,
     SdkError,
     SdkErrorCode
-} from '@modelcontextprotocol/core';
+} from '../../../core/src/index.js';
 
 import { ExperimentalClientTasks } from '../experimental/tasks/client.js';
 

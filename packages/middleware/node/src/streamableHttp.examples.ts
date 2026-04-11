@@ -10,7 +10,7 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-import { McpServer } from '@modelcontextprotocol/server';
+import { McpServer } from '../../../server/src/index.js';
 
 import { NodeStreamableHTTPServerTransport } from './streamableHttp.js';
 

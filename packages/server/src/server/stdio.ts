@@ -1,8 +1,8 @@
 import type { Readable, Writable } from 'node:stream';
 
-import type { JSONRPCMessage, Transport } from '@modelcontextprotocol/core';
-import { ReadBuffer, serializeMessage } from '@modelcontextprotocol/core';
-import { process } from '@modelcontextprotocol/server/_shims';
+import type { JSONRPCMessage, Transport } from '../../../core/src/index.js';
+import { ReadBuffer, serializeMessage } from '../../../core/src/index.js';
+import { process } from '../shimsNode.js';
 
 /**
  * Server transport for stdio: this communicates with an MCP client by reading from the current process' `stdin` and writing to `stdout`.

@@ -8,8 +8,8 @@
  * @module
  */
 
-import type { FetchLike } from '@modelcontextprotocol/core';
-import { IdJagTokenExchangeResponseSchema, OAuthErrorResponseSchema, OAuthTokensSchema } from '@modelcontextprotocol/core';
+import type { FetchLike } from '../../../core/src/index.js';
+import { IdJagTokenExchangeResponseSchema, OAuthErrorResponseSchema, OAuthTokensSchema } from '../../../core/src/index.js';
 
 import type { ClientAuthMethod } from './auth.js';
 import { applyClientAuthentication, discoverAuthorizationServerMetadata } from './auth.js';

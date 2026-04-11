@@ -21,8 +21,8 @@ import type {
     RequestOptions,
     ResponseMessage,
     ResultTypeMap
-} from '@modelcontextprotocol/core';
-import { getResultSchema, GetTaskPayloadResultSchema, SdkError, SdkErrorCode } from '@modelcontextprotocol/core';
+} from '../../../../core/src/index.js';
+import { getResultSchema, GetTaskPayloadResultSchema, SdkError, SdkErrorCode } from '../../../../core/src/index.js';
 
 import type { Server } from '../../server/server.js';
 

@@ -77,4 +77,4 @@ export { ExperimentalClientTasks } from './experimental/tasks/client.js';
 export { fromJsonSchema } from './fromJsonSchema.js';
 
 // re-export curated public API from core
-export * from '@modelcontextprotocol/core/public';
+export * from '../../core/src/exports/public/index.js';

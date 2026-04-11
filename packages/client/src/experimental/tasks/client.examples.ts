@@ -7,7 +7,7 @@
  * @module
  */
 
-import type { RequestOptions } from '@modelcontextprotocol/core';
+import type { RequestOptions } from '../../../../core/src/index.js';
 
 import type { Client } from '../../client/client.js';
 

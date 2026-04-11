@@ -27,9 +27,6 @@ catalogs:
     '@types/express-serve-static-core':
       specifier: ^5.1.0
       version: 5.1.1
-    '@types/supertest':
-      specifier: ^6.0.2
-      version: 6.0.3
     '@typescript/native-preview':
       specifier: ^7.0.0-dev.20251217.1
       version: 7.0.0-dev.20260327.2
@@ -60,9 +57,6 @@ catalogs:
     tsx:
       specifier: ^4.16.5
       version: 4.21.0
-    typedoc:
-      specifier: ^0.28.14
-      version: 0.28.18
     typescript:
       specifier: ^5.9.3
       version: 5.9.3
@@ -136,10 +130,38 @@ overrides:
 importers:
 
   .:
-    devDependencies:
+    dependencies:
       '@cfworker/json-schema':
-        specifier: catalog:runtimeShared
+        specifier: ^4.1.1
         version: 4.1.1
+      ajv:
+        specifier: ^8.17.1
+        version: 8.18.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.18.0)
+      cross-spawn:
+        specifier: ^7.0.5
+        version: 7.0.6
+      eventsource:
+        specifier: ^3.0.2
+        version: 3.0.7
+      eventsource-parser:
+        specifier: ^3.0.0
+        version: 3.0.6
+      jose:
+        specifier: ^6.1.3
+        version: 6.2.2
+      json-schema-typed:
+        specifier: ^8.0.2
+        version: 8.0.2
+      pkce-challenge:
+        specifier: ^5.0.0
+        version: 5.0.1
+      zod:
+        specifier: ^4.0.0
+        version: 4.3.6
+    devDependencies:
       '@changesets/changelog-github':
         specifier: ^0.5.2
         version: 0.5.2(encoding@0.1.13)
@@ -147,52 +169,43 @@ importers:
         specifier: ^2.29.8
         version: 2.30.0(@types/node@24.12.0)
       '@eslint/js':
-        specifier: catalog:devTools
+        specifier: ^9.39.2
         version: 9.39.4
-      '@modelcontextprotocol/client':
-        specifier: workspace:^
-        version: link:packages/client
-      '@modelcontextprotocol/node':
-        specifier: workspace:^
-        version: link:packages/middleware/node
-      '@modelcontextprotocol/server':
-        specifier: workspace:^
-        version: link:packages/server
       '@types/content-type':
-        specifier: catalog:devTools
+        specifier: ^1.1.8
         version: 1.1.9
       '@types/cors':
-        specifier: catalog:devTools
+        specifier: ^2.8.17
         version: 2.8.19
       '@types/cross-spawn':
-        specifier: catalog:devTools
+        specifier: ^6.0.6
         version: 6.0.6
       '@types/eventsource':
-        specifier: catalog:devTools
+        specifier: ^1.1.15
         version: 1.1.15
       '@types/express':
-        specifier: catalog:devTools
+        specifier: ^5.0.6
         version: 5.0.6
       '@types/express-serve-static-core':
-        specifier: catalog:devTools
+        specifier: ^5.1.0
         version: 5.1.1
       '@types/node':
         specifier: ^24.10.1
         version: 24.12.0
       '@types/supertest':
-        specifier: catalog:devTools
+        specifier: ^6.0.2
         version: 6.0.3
       '@typescript/native-preview':
-        specifier: catalog:devTools
+        specifier: ^7.0.0-dev.20251217.1
         version: 7.0.0-dev.20260327.2
       eslint:
-        specifier: catalog:devTools
+        specifier: ^9.39.2
         version: 9.39.4
       eslint-config-prettier:
-        specifier: catalog:devTools
+        specifier: ^10.1.8
         version: 10.1.8(eslint@9.39.4)
       eslint-plugin-n:
-        specifier: catalog:devTools
+        specifier: ^17.23.1
         version: 17.24.0(eslint@9.39.4)(typescript@5.9.3)
       fast-glob:
         specifier: ^3.3.3
@@ -201,35 +214,32 @@ importers:
         specifier: ^2.0.16
         version: 2.1.4
       prettier:
-        specifier: catalog:devTools
+        specifier: 3.6.2
         version: 3.6.2
       supertest:
-        specifier: catalog:devTools
+        specifier: ^7.0.0
         version: 7.2.2
       tsdown:
-        specifier: catalog:devTools
+        specifier: ^0.18.0
         version: 0.18.4(@typescript/native-preview@7.0.0-dev.20260327.2)(typescript@5.9.3)
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
       tsx:
-        specifier: catalog:devTools
+        specifier: ^4.16.5
         version: 4.21.0
       typedoc:
-        specifier: catalog:devTools
+        specifier: ^0.28.14
         version: 0.28.18(typescript@5.9.3)
       typescript:
-        specifier: catalog:devTools
+        specifier: ^5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: catalog:devTools
+        specifier: ^8.48.1
         version: 8.57.2(eslint@9.39.4)(typescript@5.9.3)
       vitest:
-        specifier: catalog:devTools
+        specifier: ^4.0.15
         version: 4.1.2(@opentelemetry/api@1.9.1)(@types/node@24.12.0)(vite@7.3.0(@types/node@24.12.0)(tsx@4.21.0)(yaml@2.8.3))
-      zod:
-        specifier: catalog:runtimeShared
-        version: 4.3.6
 
   common/eslint-config:
     dependencies:
