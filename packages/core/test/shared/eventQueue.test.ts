@@ -3,8 +3,8 @@ import { ProvenanceEnvelope } from '../../src/shared/provenance.js';
 
 function makeEnvelope(topic: string, payload: unknown = {}): ProvenanceEnvelope {
     return new ProvenanceEnvelope(
-        { topic, payload, event_id: `evt-${topic}` },
-        { server_id: 'test', server_trust: 'trusted', received_at: new Date().toISOString() }
+        { topic, payload, eventId: `evt-${topic}` },
+        { server: 'test', trust: 'trusted', received_at: new Date().toISOString() }
     );
 }
 

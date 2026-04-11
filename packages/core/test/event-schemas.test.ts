@@ -1,5 +1,4 @@
 import {
-    EventEffectSchema,
     EventTopicDescriptorSchema,
     EventsCapabilitySchema,
     EventParamsSchema,
@@ -22,41 +21,16 @@ import {
 } from '../src/types/index.js';
 
 describe('Event Zod schemas', () => {
-    describe('EventEffectSchema', () => {
-        it('should parse a valid event effect', () => {
-            const result = EventEffectSchema.parse({
-                type: 'inject_context',
-                priority: 'high'
-            });
-            expect(result.type).toBe('inject_context');
-            expect(result.priority).toBe('high');
-        });
-
-        it('should default priority to normal', () => {
-            const result = EventEffectSchema.parse({
-                type: 'notify_user'
-            });
-            expect(result.priority).toBe('normal');
-        });
-
-        it('should accept all valid effect types', () => {
-            for (const type of ['inject_context', 'notify_user', 'trigger_turn']) {
-                expect(() => EventEffectSchema.parse({ type })).not.toThrow();
-            }
-        });
-
-        it('should reject invalid effect type', () => {
-            expect(() => EventEffectSchema.parse({ type: 'invalid' })).toThrow();
-        });
-    });
-
     describe('EventTopicDescriptorSchema', () => {
         it('should parse a minimal topic descriptor', () => {
             const result = EventTopicDescriptorSchema.parse({
-                pattern: 'spellbook/sessions/+/messages'
+                pattern: 'agents/{agent_id}/messages',
+                kind: 'content'
             });
-            expect(result.pattern).toBe('spellbook/sessions/+/messages');
+            expect(result.pattern).toBe('agents/{agent_id}/messages');
+            expect(result.kind).toBe('content');
             expect(result.description).toBeUndefined();
+            expect(result.suggestedHandle).toBeUndefined();
             expect(result.retained).toBeUndefined();
             expect(result.schema).toBeUndefined();
         });
@@ -64,18 +38,57 @@ describe('Event Zod schemas', () => {
         it('should parse a full topic descriptor', () => {
             const result = EventTopicDescriptorSchema.parse({
                 pattern: 'build/status',
+                kind: 'content',
                 description: 'Build status events',
+                suggestedHandle: 'inject',
                 retained: true,
                 schema: { type: 'object', properties: { status: { type: 'string' } } }
             });
             expect(result.pattern).toBe('build/status');
+            expect(result.kind).toBe('content');
             expect(result.description).toBe('Build status events');
+            expect(result.suggestedHandle).toBe('inject');
             expect(result.retained).toBe(true);
             expect(result.schema).toBeDefined();
         });
 
+        it('should accept both content and signal kinds', () => {
+            expect(() => EventTopicDescriptorSchema.parse({ pattern: 'a', kind: 'content' })).not.toThrow();
+            expect(() => EventTopicDescriptorSchema.parse({ pattern: 'a', kind: 'signal' })).not.toThrow();
+        });
+
+        it('should reject invalid kind', () => {
+            expect(() => EventTopicDescriptorSchema.parse({ pattern: 'a', kind: 'other' })).toThrow();
+        });
+
+        it('should reject missing kind', () => {
+            expect(() => EventTopicDescriptorSchema.parse({ pattern: 'a' })).toThrow();
+        });
+
+        it('should accept all valid suggestedHandle values', () => {
+            for (const handle of ['drop', 'silent', 'notify', 'ask', 'inject', 'interrupt']) {
+                expect(() =>
+                    EventTopicDescriptorSchema.parse({
+                        pattern: 'a',
+                        kind: 'content',
+                        suggestedHandle: handle
+                    })
+                ).not.toThrow();
+            }
+        });
+
+        it('should reject invalid suggestedHandle', () => {
+            expect(() =>
+                EventTopicDescriptorSchema.parse({
+                    pattern: 'a',
+                    kind: 'content',
+                    suggestedHandle: 'bogus'
+                })
+            ).toThrow();
+        });
+
         it('should reject missing pattern', () => {
-            expect(() => EventTopicDescriptorSchema.parse({})).toThrow();
+            expect(() => EventTopicDescriptorSchema.parse({ kind: 'content' })).toThrow();
             expect(() => EventTopicDescriptorSchema.parse({ description: 'no pattern' })).toThrow();
         });
     });
@@ -89,7 +102,7 @@ describe('Event Zod schemas', () => {
 
         it('should parse capability with topics and instructions', () => {
             const result = EventsCapabilitySchema.parse({
-                topics: [{ pattern: 'foo/bar' }],
+                topics: [{ pattern: 'foo/bar', kind: 'content' }],
                 instructions: 'Subscribe to foo/bar for updates'
             });
             expect(result.topics).toHaveLength(1);
@@ -112,67 +125,83 @@ describe('Event Zod schemas', () => {
         it('should parse minimal event params', () => {
             const result = EventParamsSchema.parse({
                 topic: 'build/status',
-                event_id: 'evt-001',
+                eventId: 'evt-001',
                 payload: { status: 'success' }
             });
             expect(result.topic).toBe('build/status');
-            expect(result.event_id).toBe('evt-001');
+            expect(result.eventId).toBe('evt-001');
             expect(result.payload).toEqual({ status: 'success' });
         });
 
         it('should parse full event params', () => {
             const result = EventParamsSchema.parse({
                 topic: 'build/status',
-                event_id: 'evt-002',
+                eventId: 'evt-002',
                 payload: 'plain text payload',
-                timestamp: '2026-04-07T00:00:00Z',
+                priority: 'urgent',
                 retained: true,
                 source: 'ci-server',
-                correlation_id: 'corr-123',
-                requested_effects: [{ type: 'inject_context', priority: 'urgent' }],
-                expires_at: '2026-04-08T00:00:00Z'
+                expiresAt: '2026-04-08T00:00:00Z'
             });
             expect(result.topic).toBe('build/status');
-            expect(result.event_id).toBe('evt-002');
+            expect(result.eventId).toBe('evt-002');
             expect(result.payload).toBe('plain text payload');
-            expect(result.timestamp).toBe('2026-04-07T00:00:00Z');
+            expect(result.priority).toBe('urgent');
             expect(result.retained).toBe(true);
             expect(result.source).toBe('ci-server');
-            expect(result.correlation_id).toBe('corr-123');
-            expect(result.requested_effects).toHaveLength(1);
-            expect(result.requested_effects![0]!.type).toBe('inject_context');
-            expect(result.requested_effects![0]!.priority).toBe('urgent');
-            expect(result.expires_at).toBe('2026-04-08T00:00:00Z');
+            expect(result.expiresAt).toBe('2026-04-08T00:00:00Z');
+        });
+
+        it('should accept all valid priority levels', () => {
+            for (const priority of ['urgent', 'high', 'normal', 'low']) {
+                expect(() =>
+                    EventParamsSchema.parse({
+                        topic: 't',
+                        eventId: 'e',
+                        priority
+                    })
+                ).not.toThrow();
+            }
+        });
+
+        it('should reject invalid priority', () => {
+            expect(() =>
+                EventParamsSchema.parse({
+                    topic: 't',
+                    eventId: 'e',
+                    priority: 'critical'
+                })
+            ).toThrow();
         });
 
         it('should accept _meta from NotificationsParamsSchema', () => {
             const result = EventParamsSchema.parse({
                 topic: 'test',
-                event_id: 'evt-003',
+                eventId: 'evt-003',
                 payload: null,
                 _meta: { progressToken: 'tok-1' }
             });
             expect(result._meta).toBeDefined();
             expect(result._meta!.progressToken).toBe('tok-1');
             expect(result.topic).toBe('test');
-            expect(result.event_id).toBe('evt-003');
+            expect(result.eventId).toBe('evt-003');
             expect(result.payload).toBeNull();
         });
 
         it('should parse without payload (payload is optional)', () => {
             const result = EventParamsSchema.parse({
                 topic: 'build/status',
-                event_id: 'evt-no-payload'
+                eventId: 'evt-no-payload'
             });
             expect(result.topic).toBe('build/status');
-            expect(result.event_id).toBe('evt-no-payload');
+            expect(result.eventId).toBe('evt-no-payload');
             expect(result.payload).toBeUndefined();
         });
 
         it('should accept unknown extra fields (loose)', () => {
             const result = EventParamsSchema.parse({
                 topic: 'build/status',
-                event_id: 'evt-extra',
+                eventId: 'evt-extra',
                 payload: null,
                 customField: 'extra-value'
             });
@@ -184,12 +213,12 @@ describe('Event Zod schemas', () => {
             // Missing topic
             expect(() =>
                 EventParamsSchema.parse({
-                    event_id: 'evt-bad',
+                    eventId: 'evt-bad',
                     payload: null
                 })
             ).toThrow();
 
-            // Missing event_id
+            // Missing eventId
             expect(() =>
                 EventParamsSchema.parse({
                     topic: 'test',
@@ -201,16 +230,16 @@ describe('Event Zod schemas', () => {
             expect(() =>
                 EventParamsSchema.parse({
                     topic: 123,
-                    event_id: 'evt-bad',
+                    eventId: 'evt-bad',
                     payload: null
                 })
             ).toThrow();
 
-            // Wrong type for event_id
+            // Wrong type for eventId
             expect(() =>
                 EventParamsSchema.parse({
                     topic: 'test',
-                    event_id: 456,
+                    eventId: 456,
                     payload: null
                 })
             ).toThrow();
@@ -226,7 +255,7 @@ describe('Event Zod schemas', () => {
                 method: 'events/emit',
                 params: {
                     topic: 'sessions/abc/messages',
-                    event_id: 'evt-100',
+                    eventId: 'evt-100',
                     payload: { text: 'hello' }
                 }
             };
@@ -239,7 +268,7 @@ describe('Event Zod schemas', () => {
             expect(() =>
                 EventEmitNotificationSchema.parse({
                     method: 'events/wrong',
-                    params: { topic: 'x', event_id: 'y', payload: null }
+                    params: { topic: 'x', eventId: 'y', payload: null }
                 })
             ).toThrow();
         });
@@ -294,9 +323,9 @@ describe('Event Zod schemas', () => {
                 retained: [
                     {
                         topic: 'build/status',
-                        event_id: 'ret-001',
-                        timestamp: '2026-04-07T00:00:00Z',
-                        payload: { status: 'passing' }
+                        eventId: 'ret-001',
+                        payload: { status: 'passing' },
+                        retained: true
                     }
                 ]
             });
@@ -307,8 +336,8 @@ describe('Event Zod schemas', () => {
             expect(result.rejected![0]!.reason).toBe('permission_denied');
             expect(result.retained).toHaveLength(1);
             expect(result.retained![0]!.topic).toBe('build/status');
-            expect(result.retained![0]!.event_id).toBe('ret-001');
-            expect(result.retained![0]!.timestamp).toBe('2026-04-07T00:00:00Z');
+            expect(result.retained![0]!.eventId).toBe('ret-001');
+            expect(result.retained![0]!.retained).toBe(true);
             expect(result.retained![0]!.payload).toEqual({ status: 'passing' });
         });
     });
@@ -382,22 +411,22 @@ describe('Event Zod schemas', () => {
         it('should parse a list result', () => {
             const result = EventListResultSchema.parse({
                 topics: [
-                    { pattern: 'build/status', description: 'Build status', retained: true },
-                    { pattern: 'sessions/{session_id}/messages' }
+                    { pattern: 'build/status', kind: 'content', description: 'Build status', retained: true },
+                    { pattern: 'agents/{agent_id}/messages', kind: 'content' }
                 ]
             });
             expect(result.topics).toHaveLength(2);
             expect(result.topics[0]!.pattern).toBe('build/status');
             expect(result.topics[0]!.description).toBe('Build status');
             expect(result.topics[0]!.retained).toBe(true);
-            expect(result.topics[1]!.pattern).toBe('sessions/{session_id}/messages');
+            expect(result.topics[1]!.pattern).toBe('agents/{agent_id}/messages');
             expect(result.topics[1]!.description).toBeUndefined();
             expect(result.topics[1]!.retained).toBeUndefined();
         });
 
         it('should accept nextCursor for pagination', () => {
             const result = EventListResultSchema.parse({
-                topics: [{ pattern: 'foo/bar' }],
+                topics: [{ pattern: 'foo/bar', kind: 'signal' }],
                 nextCursor: 'page2'
             });
             expect(result.nextCursor).toBe('page2');
@@ -412,38 +441,40 @@ describe('Event Zod schemas', () => {
         it('should parse a retained event', () => {
             const result = RetainedEventSchema.parse({
                 topic: 'build/status',
-                event_id: 'ret-001',
-                timestamp: '2026-04-07T00:00:00Z',
-                payload: { status: 'green' }
+                eventId: 'ret-001',
+                payload: { status: 'green' },
+                retained: true
             });
             expect(result.topic).toBe('build/status');
+            expect(result.eventId).toBe('ret-001');
             expect(result.payload).toEqual({ status: 'green' });
+            expect(result.retained).toBe(true);
         });
 
         it('should parse without optional fields', () => {
             const result = RetainedEventSchema.parse({
                 topic: 'x',
-                event_id: 'y',
+                eventId: 'y',
                 payload: null
             });
-            expect(result.timestamp).toBeUndefined();
+            expect(result.retained).toBeUndefined();
         });
 
         it('should parse without payload (payload is optional)', () => {
             const result = RetainedEventSchema.parse({
                 topic: 'x',
-                event_id: 'y'
+                eventId: 'y'
             });
             expect(result.payload).toBeUndefined();
         });
 
         it('should reject missing required fields', () => {
-            // Missing topic and event_id
+            // Missing topic and eventId
             expect(() => RetainedEventSchema.parse({})).toThrow();
-            // Missing event_id
+            // Missing eventId
             expect(() => RetainedEventSchema.parse({ topic: 'x' })).toThrow();
             // Missing topic
-            expect(() => RetainedEventSchema.parse({ event_id: 'y', payload: null })).toThrow();
+            expect(() => RetainedEventSchema.parse({ eventId: 'y', payload: null })).toThrow();
         });
     });
 
@@ -485,7 +516,7 @@ describe('Event schemas wired into unions and capabilities', () => {
         it('should accept the events field', () => {
             const result = ServerCapabilitiesSchema.parse({
                 events: {
-                    topics: [{ pattern: 'build/status', description: 'Build events' }],
+                    topics: [{ pattern: 'build/status', kind: 'content', description: 'Build events' }],
                     instructions: 'Subscribe for build updates'
                 }
             });
@@ -514,15 +545,15 @@ describe('Event schemas wired into unions and capabilities', () => {
                 method: 'events/emit',
                 params: {
                     topic: 'test/topic',
-                    event_id: 'evt-1',
+                    eventId: 'evt-1',
                     payload: { data: 'value' }
                 }
             };
             const parsed = ServerNotificationSchema.parse(notification);
             expect(parsed.method).toBe('events/emit');
-            const params = parsed.params as { topic: string; event_id: string; payload: unknown };
+            const params = parsed.params as { topic: string; eventId: string; payload: unknown };
             expect(params.topic).toBe('test/topic');
-            expect(params.event_id).toBe('evt-1');
+            expect(params.eventId).toBe('evt-1');
             expect(params.payload).toEqual({ data: 'value' });
         });
     });
@@ -572,7 +603,7 @@ describe('Event schemas wired into unions and capabilities', () => {
 
         it('should accept EventListResult', () => {
             const parsed = ServerResultSchema.parse({
-                topics: [{ pattern: 'foo/bar' }]
+                topics: [{ pattern: 'foo/bar', kind: 'content' }]
             }) as { topics: { pattern: string }[] };
             expect(parsed.topics).toHaveLength(1);
             expect(parsed.topics[0]!.pattern).toBe('foo/bar');

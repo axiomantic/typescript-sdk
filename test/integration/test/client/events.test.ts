@@ -30,7 +30,7 @@ describe('Client event methods', () => {
 
         server.setRequestHandler('events/list', async () => {
             return {
-                topics: [{ pattern: 'myapp/status', description: 'Status updates' }]
+                topics: [{ pattern: 'myapp/status', kind: 'content', description: 'Status updates' }]
             };
         });
 
@@ -73,7 +73,7 @@ describe('Client event methods', () => {
             params: {
                 topic: 'myapp/status',
                 payload: { status: 'ok' },
-                event_id: 'evt-1'
+                eventId: 'evt-1'
             }
         });
 

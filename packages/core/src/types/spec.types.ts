@@ -601,6 +601,11 @@ export interface ClientCapabilities {
 /**
  * Describes a topic the server can publish to.
  *
+ * NOTE: This interface has been extended locally on the `mcp-events` branch
+ * with MCP Events Spec v2 fields (`kind`, `suggestedHandle`) that are not
+ * yet merged into the upstream schema. Running `pnpm run fetch:spec-types`
+ * will overwrite these additions until the upstream spec is updated.
+ *
  * @category `events`
  */
 export interface EventTopicDescriptor {
@@ -609,9 +614,21 @@ export interface EventTopicDescriptor {
      */
     pattern: string;
     /**
+     * Topic kind. `content` is meaningful to conversational context (suitable
+     * for LLM injection); `signal` is machine-to-machine data (not suitable
+     * for LLM injection). REQUIRED.
+     */
+    kind: 'content' | 'signal';
+    /**
      * A human-readable description of the topic.
      */
     description?: string;
+    /**
+     * Server's suggested client handling mode. Advisory only; clients are
+     * free to override. One of `drop`, `silent`, `notify`, `ask`, `inject`,
+     * `interrupt`.
+     */
+    suggestedHandle?: 'drop' | 'silent' | 'notify' | 'ask' | 'inject' | 'interrupt';
     /**
      * Whether the server retains the last published message for this topic.
      */

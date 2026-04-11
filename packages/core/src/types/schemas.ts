@@ -475,19 +475,34 @@ export const InitializeRequestSchema = RequestSchema.extend({
 
 /* Events */
 /**
- * Advisory hint about how the client should handle an event.
+ * Priority levels for events. Servers declare priority on each emission;
+ * clients use it to order queued events and apply priority-dependent policies.
  */
-export const EventEffectSchema = z.object({
-    type: z.enum(['inject_context', 'notify_user', 'trigger_turn']),
-    priority: z.enum(['low', 'normal', 'high', 'urgent']).optional().default('normal')
-});
+export const EventPrioritySchema = z.enum(['urgent', 'high', 'normal', 'low']);
+
+/**
+ * Kind of topic: `content` is meaningful for conversational context and
+ * suitable for LLM injection, while `signal` carries machine-to-machine
+ * data not intended for the LLM.
+ */
+export const EventKindSchema = z.enum(['content', 'signal']);
+
+/**
+ * Suggested client-side handling hint. Clients are free to override.
+ */
+export const EventHandleSchema = z.enum(['drop', 'silent', 'notify', 'ask', 'inject', 'interrupt']);
 
 /**
  * Describes a topic the server can publish to.
+ *
+ * Per MCP Events spec v2, topic declarations include a REQUIRED `kind`
+ * (content vs. signal) and optional client handling hints.
  */
 export const EventTopicDescriptorSchema = z.object({
     pattern: z.string(),
+    kind: EventKindSchema,
     description: z.string().optional(),
+    suggestedHandle: EventHandleSchema.optional(),
     retained: z.boolean().optional(),
     schema: JSONObjectSchema.optional()
 });
@@ -2119,19 +2134,22 @@ export const RootsListChangedNotificationSchema = NotificationSchema.extend({
 
 /* Events */
 /**
- * Parameters for events/emit notification.
- * Extends NotificationsParamsSchema to inherit _meta for related_request_id tracking.
+ * Parameters for events/emit notification (camelCase wire format per v2 spec).
+ *
+ * Extends NotificationsParamsSchema to inherit `_meta`. `priority` is a
+ * top-level wire field. `eventId` and `expiresAt` are camelCase per
+ * JSON-RPC convention. `correlationId` and `requestedEffects` have been
+ * removed from the v2 wire format: applications that need request /
+ * response correlation MAY carry an identifier inside `payload`.
  */
 export const EventParamsSchema = NotificationsParamsSchema.extend({
     topic: z.string(),
-    event_id: z.string(),
     payload: JSONValueSchema.optional(),
-    timestamp: z.iso.datetime({ offset: true }).optional(),
-    retained: z.boolean().optional(),
+    eventId: z.string(),
+    priority: EventPrioritySchema.optional(),
     source: z.string().optional(),
-    correlation_id: z.string().optional(),
-    requested_effects: z.array(EventEffectSchema).optional(),
-    expires_at: z.iso.datetime({ offset: true }).optional()
+    expiresAt: z.iso.datetime({ offset: true }).optional(),
+    retained: z.boolean().optional()
 }).loose();
 
 /**
@@ -2168,12 +2186,16 @@ export const RejectedTopicSchema = z.object({
 
 /**
  * A retained event delivered on subscribe.
+ *
+ * Uses camelCase `eventId` per v2 wire format. The optional `retained`
+ * flag mirrors the field on emitted events and is typically `true` for
+ * values delivered from the retained store.
  */
 export const RetainedEventSchema = z.object({
     topic: z.string(),
-    event_id: z.string(),
-    timestamp: z.iso.datetime({ offset: true }).optional(),
-    payload: JSONValueSchema.optional()
+    eventId: z.string(),
+    payload: JSONValueSchema.optional(),
+    retained: z.boolean().optional()
 });
 
 /**

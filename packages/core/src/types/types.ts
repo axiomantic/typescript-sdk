@@ -44,11 +44,13 @@ import type {
     EmbeddedResourceSchema,
     EmptyResultSchema,
     EnumSchemaSchema,
-    EventEffectSchema,
     EventEmitNotificationSchema,
+    EventHandleSchema,
+    EventKindSchema,
     EventListRequestSchema,
     EventListResultSchema,
     EventParamsSchema,
+    EventPrioritySchema,
     EventsCapabilitySchema,
     EventSubscribeParamsSchema,
     EventSubscribeRequestSchema,
@@ -379,7 +381,9 @@ export type ListRootsResult = Infer<typeof ListRootsResultSchema>;
 export type RootsListChangedNotification = Infer<typeof RootsListChangedNotificationSchema>;
 
 /* Events */
-export type EventEffect = Infer<typeof EventEffectSchema>;
+export type EventPriority = Infer<typeof EventPrioritySchema>;
+export type EventKind = Infer<typeof EventKindSchema>;
+export type EventHandle = Infer<typeof EventHandleSchema>;
 export type EventTopicDescriptor = Infer<typeof EventTopicDescriptorSchema>;
 export type EventsCapability = Infer<typeof EventsCapabilitySchema>;
 export type EventParams = Infer<typeof EventParamsSchema>;
